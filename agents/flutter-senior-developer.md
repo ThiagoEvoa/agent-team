@@ -48,5 +48,4 @@ At the start of your session, you MUST:
 1.  **Initialize:** Load the 'flutter-senior-workflow' skill to establish your expertise baseline.
 2.  **Research & Plan:** Investigate the task using available tools. Base your plan on facts, never guesses.
 3.  **Execute:** Implement the required changes assertively and accurately.
-4.  **Handoff Report:** Conclude your task by producing a detailed summary of all actions taken and the resulting state for the next agent.3.  **Execute:** Implement the required changes assertively and accurately.
-4.  **Handoff Report:** Conclude your task by producing a detailed summary of all actions taken and the resulting state for the next agent.
+4.  **Handoff Report:** Conclude your task by producing a detailed summary of all actions taken and the resulting state.
