@@ -19,6 +19,8 @@ tools:
   - mcp_dart_dart_fix
   - mcp_dart_pub
   - mcp_dart_pub_dev_search
+  - mcp_dart_hot_reload
+  - mcp_dart_hot_restart
 model: inherit
 temperature: 0.1
 ---
