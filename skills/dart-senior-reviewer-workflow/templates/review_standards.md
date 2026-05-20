@@ -219,5 +219,53 @@ This document serves as the master reference for software architecture and quali
 
 ---
 
+## 8. Security & Data Integrity
+
+### **Input Validation Hierarchy**
+*   **General Principle:** Validate data in a strict 5-step hierarchy to protect resources.
+    1. **Origin:** Is the sender legitimate?
+    2. **Size:** Is it reasonably sized (prevent DoS)?
+    3. **Lexical:** Right characters/encoding?
+    4. **Syntax:** Is the format correct?
+    5. **Semantics:** Does it make sense in the business context?
+*   **Dart Example:**
+    ```dart
+    // 🟢 Good: Validation in constructor (Semantics)
+    class Quantity {
+      final int value;
+      Quantity(this.value) {
+        if (value < 0) throw ArgumentError('Quantity cannot be negative');
+      }
+    }
+    ```
+
+### **Domain Primitives**
+*   **General Principle:** Replace generic types (`String`, `int`) with specialized, immutable value objects that enforce invariants on creation. If the object exists, it is valid.
+*   **Dart Example:**
+    ```dart
+    // 🔴 Bad: Using raw String for sensitive data
+    void process(String email) { ... }
+    
+    // 🟢 Good: Domain Primitive
+    class Email {
+      final String value;
+      Email(this.value) {
+        if (!_isValid(value)) throw FormatException('Invalid email');
+      }
+      static bool _isValid(String v) => ...;
+    }
+    ```
+
+### **Data Protection & Privacy**
+*   **Verbatim Echoing:** Never echo raw input into logs or error messages (prevents XSS/Injection).
+*   **Read-Once Objects:** For highly sensitive data (passwords, tokens), clear the value from memory immediately after its first use.
+*   **Separation of Exceptions:** Separate Business Exceptions (domain rule violations) from Technical Exceptions (leaking system internals).
+*   **Principle of Least Privilege:** Ensure components only have access to the data and APIs they strictly need.
+
+### **Cryptography**
+*   **No Roll-Your-Own:** Never implement custom crypto logic. Use peer-reviewed libraries (e.g., `package:tink`).
+
+---
+
 ## Output Format Enforcement
 **STRICT MANDATE:** The reviewer is strictly required to output issues mapped to these standards as actionable **bullet points only**. Do not lecture the user; provide the File/Line, the Issue (citing the relevant standard from this document), and the exact Fix.
