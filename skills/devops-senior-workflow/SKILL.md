@@ -1,6 +1,6 @@
 ---
 name: devops-senior-workflow
-description: Workflow and procedural guidance for the Senior DevOps Specialist, focusing on containerization, orchestration, and CI/CD automation.
+description: Workflow and procedural guidance for the Senior DevOps Specialist, focusing on containerization, orchestration, and CI/CD automation using GitHub integrations.
 resources:
   - templates/architecture.md
   - templates/docker_standards.md
@@ -18,6 +18,7 @@ Use this skill to guide the infrastructure and automation processes. It outlines
 - **Security by Design:** Enforce "Shift-Left" security principles in all pipelines and container images.
 - **Optimization:** Ensure minimal container footprints and efficient resource utilization in orchestrators.
 - **Standardization:** Follow the mandatory patterns defined in the `templates/` directory.
+- **GitHub Automation Control:** Configure GitHub Actions pipelines, automate workflow dispatch triggers, and securely manage environment secrets.
 
 ## Instructions
 
@@ -31,13 +32,14 @@ Use this skill to guide the infrastructure and automation processes. It outlines
 
 ### 3. Pipeline Automation
 - **CI/CD:** Utilize `templates/cicd_standards.md` to build robust pipelines. Ensure every stage (Lint -> Test -> Build -> Deploy) is represented.
-- **Secrets:** Verify compliance with `templates/security_standards.md`. NEVER hardcode credentials.
+- **Secrets Management:** Verify compliance with `templates/security_standards.md`. NEVER hardcode credentials. For GitHub Actions secrets, use GitHub CLI (`gh secret set <secret-name> --body "<secret-value>"`) to manage them securely.
 
-### 4. Validation Phase
+### 4. Validation & Operations Phase
 1. **Lint:** Run `hadolint` for Dockerfiles or `kube-linter` for K8s if available.
 2. **Local Test:** Use `docker-compose` or `minikube` to verify manifests.
-3. **Pipeline Check:** Trigger a test run of the CI workflow if possible.
-4. **Health Check:** Verify service availability after deployment.
+3. **Pipeline Dispatch:** Trigger and test the CI/CD workflows using GitHub CLI (`gh workflow run <workflow-name>`).
+4. **Pipeline Monitoring:** Monitor run status using `gh run list` and view specific run logs with `gh run view <run-id>`.
+5. **Health Check:** Verify service availability after deployment.
 
 ### 5. Handoff
-Synthesize the changes made to the infrastructure, new environments created, and any manual steps or secrets that need user attention.
+Synthesize the changes made to the infrastructure, new environments created, updated GitHub workflows/secrets, and any manual steps or secrets that need user attention.

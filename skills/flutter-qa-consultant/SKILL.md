@@ -1,6 +1,6 @@
 ---
 name: flutter-qa-consultant
-description: Workflow for launching Flutter apps and performing automated UI interactions using Dart MCP tools.
+description: Workflow for launching Flutter apps and performing automated UI interactions using Dart MCP tools and posting test reports to GitHub.
 resources:
   - templates/test_report.md
 ---
@@ -32,3 +32,4 @@ For each step in the user's requested test scenario:
 ### Phase 3: Teardown & Reporting
 1. **Teardown:** Use `mcp_dart_stop_app` using the PID from the launch step to close the application.
 2. **Report:** Generate a comprehensive markdown report based on the `test_report.md` template located in your resources, documenting the exact steps taken, the results, and any runtime errors.
+3. **GitHub Report Publication:** If testing relates to a specific GitHub issue or PR, post the final report as a comment using `github_create_comment` (MCP) or `gh pr comment` / `gh issue comment` (CLI) to inform the developer and reviewers of the test results.

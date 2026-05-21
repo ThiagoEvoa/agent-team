@@ -1,15 +1,16 @@
 ---
 name: dart-senior-reviewer-workflow
-description: Workflow for the Senior Dart Architect Reviewer to perform extremely picky, high-quality local reviews (Git changes or Full Project).
+description: Workflow for the Senior Dart Architect Reviewer to perform extremely picky, high-quality reviews (Git changes, Full Project, or remote GitHub Pull Requests).
 resources:
   - templates/review_standards.md
 ---
 
 # Dart Senior Architect Reviewer Workflow
 
-Use this skill to guide the Senior Dart Architect Reviewer agent through local codebase reviews. It enforces two modes:
+Use this skill to guide the Senior Dart Architect Reviewer agent through codebase reviews. It enforces three modes:
 1. **Changes Review:** Reviewing only git-modified or staged files.
 2. **Full Project Review:** A comprehensive architectural and security audit of the entire project.
+3. **GitHub PR Review:** An audit of a remote Pull Request, providing line-by-line or global PR comments on GitHub.
 
 ## Objectives
 - **Enforce Holistic Dart Standards:** Review code changes against a comprehensive set of Dart-specific architectural, testing, and **security** standards.
@@ -20,7 +21,7 @@ Use this skill to guide the Senior Dart Architect Reviewer agent through local c
 ## Instructions
 
 ### 1. Scope Determination
-The reviewer must support two primary modes of operation:
+The reviewer must support three primary modes of operation:
 - **Mode A: Changes Review (Default)**
   - Use `git status` to identify modified and staged files.
   - Determine if reviewing all changes, staged changes (`--staged`), or specific files.
@@ -28,12 +29,16 @@ The reviewer must support two primary modes of operation:
 - **Mode B: Full Project Review**
   - Safely map the codebase to prevent context exhaustion (iterate through directories sequentially).
   - Analyze the overall project structure, dependency graphs, and cross-module integrity.
+- **Mode C: GitHub PR Review**
+  - Fetch the PR details and diff using GitHub MCP `github_get_pull_request` or GitHub CLI `gh pr diff <pr-number>`.
+  - Identify modified files and fetch their contents to review context.
+  - Submit comments to specific files/lines or as a global review summary using `github_create_comment` / `github_add_comment` (MCP) or `gh pr comment` / `gh pr review` (CLI).
 
-### 2. Analysis Workflow (Applies to both modes)
-1. **Fetch Data:** Retrieve content for the target files or directories.
+### 2. Analysis Workflow (Applies to all modes)
+1. **Fetch Data:** Retrieve content for the target files or directories, or PR diffs.
 2. **Gap Analysis:** Compare code against all sections of `templates/review_standards.md` with a highly critical eye, specifically looking for architectural violations, technical debt, or insecure patterns.
 3. **Empirical Validation:** Attempt to run `dart analyze`, `dart test`, and `dart pub outdated --mode=security` (if applicable) via `run_shell_command` to gather factual data.
-4. **Generate Report:** Present findings directly to the user strictly using the **Feedback Structure**.
+4. **Generate Report:** Present findings directly to the user (and post to GitHub if reviewing a PR) strictly using the **Feedback Structure**.
 
 ### Feedback Structure - STRICT MANDATE
 Your response MUST be exclusively bullet points. No conversational filler, no introductory/concluding paragraphs. 
@@ -50,4 +55,5 @@ Format:
 ## Parameters
 - `only_staged` (boolean, optional): If true, only review staged changes.
 - `full_review` (boolean, optional): If true, performs a comprehensive review of the entire project.
+- `pr_number` (integer, optional): The number of the target GitHub Pull Request.
 - `files` (array of strings, optional): Specific file paths to review.
