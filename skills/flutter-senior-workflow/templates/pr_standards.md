@@ -1,51 +1,34 @@
-# Pull Request Description Standards
+# PR Description Standards
 
-All developers (and developer agents) MUST use this standard template when creating Pull Requests on GitHub. This ensures the reviewer has all necessary context, execution logs, and references to complete their audit efficiently.
+All PRs MUST use this standard format.
 
-## 🏷️ PR Title Format
-Follow Conventional Commits:
-- `feat(scope): brief description` - For new features/widgets/pages.
-- `fix(scope): brief description` - For bug fixes.
-- `refactor(scope): brief description` - For code changes that neither fix a bug nor add a feature.
-- `test(scope): brief description` - For adding missing tests or correcting tests.
-- `docs(scope): brief description` - For documentation-only changes.
-- `chore(scope): brief description` - For dependency bumps, build system tweaks, etc.
-
-*Example: `feat(ui): implement user onboarding screen and animations`*
-
----
+## 🏷️ Title Format
+Conventional Commits: `type(scope): description` (e.g., `feat(ui): add loading state`). Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
 
 ## 📝 PR Description Template
-
-Use the following Markdown structure for the Pull Request description body.
-
 ```markdown
-# [PR Title Here]
+# [PR Title]
 
 ## 🎯 Purpose / Linked Issue
-Explain what this PR accomplishes and link the corresponding GitHub issue.
-- **Closes:** #issue_number (e.g. Closes #42)
+- **Closes:** #issue_number
 
 ## 🛠️ Summary of Changes
-Detail exactly what was added, modified, or removed:
-- **Screens / Widgets:** [e.g., `OnboardingScreen`]
-- **State Management:** [e.g., `OnboardingBloc`]
-- **Models / Services:** [e.g., `UserOnboardingService`]
-- **Dependencies:** [e.g., added `lottie` pkg]
+- **Screens / Widgets:**
+- **State Management:**
+- **Models / Services:**
+- **Dependencies:**
 
 ## 🧪 Verification & Testing
-Describe how changes were tested and show evidence of successful execution.
 ### Automated Tests
-- Run command: `flutter test` or `mcp_dart_run_tests`
-- Result summary: [e.g., All 22 tests passed (100% behavior coverage)]
-
+- Command: `flutter test`
+- Result:
 ### Manual Verification
-Describe manual testing steps and paste console logs or behavior verification reports here.
+- Steps/logs:
 
 ## 🏁 Developer Handoff Checklist
-- [ ] Code is formatted (`dart format`) and fixes applied (`dart fix`).
-- [ ] Code passes all analyzer checks (`dart analyze`).
+- [ ] Formatted (`dart format`) and fixes applied (`dart fix`).
+- [ ] Passes analyzer (`dart analyze`).
 - [ ] Tests cover 100% of newly added behaviors.
-- [ ] No secrets or hardcoded credentials are included.
-- [ ] Handoff documentation/reports are generated.
+- [ ] No secrets or hardcoded credentials.
+- [ ] Handoff documentation/reports generated.
 ```

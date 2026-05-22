@@ -2,10 +2,6 @@
 name: dartfrog-senior-workflow
 description: Workflow and procedural guidance for the Senior Dart Frog Developer, focusing on dart-mcp, dart_frog CLI, and GitHub integration.
 resources:
-  - templates/architecture.md
-  - templates/middleware_standards.md
-  - templates/testing_standards.md
-  - templates/production_ready.md
   - templates/pr_standards.md
 ---
 
@@ -31,16 +27,14 @@ Use this skill to guide the implementation process for Dart Frog backend service
 
 ### 2. Implementation with Dart MCP & Templates
 When performing code changes:
-- **Architecture:** Consult `templates/architecture.md`. Respect file-system routing. Handle request methods explicitly within handlers.
-- **Middleware:** Consult `templates/middleware_standards.md`. Ensure proper order in the pipeline (wrapping from bottom to top).
-- **DI:** Use `provider` middleware for injecting dependencies. Access them via `context.read<T>()`.
+- **Standards:** View [backend_standards.md](file:///Users/thiagoevoa/Projects/agent-team/skills/dartfrog-senior-workflow/templates/backend_standards.md) dynamically only if you are modifying routes, middleware, or writing tests. Do not load this file otherwise.
 - **Discovery:** Use `mcp_dart_resolve_workspace_symbol` to find models and repositories.
 
 ### 3. Execution Phase
-1. **Plan:** Outline routes and middleware changes based on `architecture.md`. **IF UNCERTAIN: Research, do not guess.**
-2. **Implement:** Write code adhering to Dart Frog standards. Keep handlers thin; delegate to repositories/services.
+1. **Plan:** Outline routes and middleware changes. **IF UNCERTAIN: Research, do not guess.**
+2. **Implement:** Write code adhering to Dart Frog standards in `backend_standards.md`.
 3. **Analyze:** Run `mcp_dart_analyze_files`.
-4. **Test:** Run `mcp_dart_run_tests` (or `dart_frog test`) using patterns from `templates/testing_standards.md`.
+4. **Test:** Run `mcp_dart_run_tests` (or `dart_frog test`) using testing standards in `backend_standards.md`.
 5. **Format:** Run `mcp_dart_dart_format`.
 6. **Publish to GitHub:**
    - Create a feature branch locally (`git checkout -b feat/feature-name`).

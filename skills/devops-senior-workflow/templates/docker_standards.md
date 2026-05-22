@@ -2,29 +2,17 @@
 
 ## Base Images
 - Use official, minimal base images (e.g., `alpine`, `slim`).
-- Pin versions: `node:20-alpine` NOT `node:latest`.
+- Pin versions: e.g., `node:20-alpine`, avoid `latest`.
 
 ## Multi-Stage Builds
-- Separate build environment from runtime.
-- Example:
-  ```dockerfile
-  FROM node:20-alpine AS builder
-  WORKDIR /app
-  COPY . .
-  RUN npm install && npm run build
-
-  FROM node:20-alpine
-  WORKDIR /app
-  COPY --from=builder /app/dist ./dist
-  USER node
-  CMD ["node", "dist/main.js"]
-  ```
+- Separate the build environment from the runtime environment.
+- Standard pattern: Copy dependencies and build source in a `builder` stage, then copy final production artifacts (e.g. static files, compiled binaries) into a minimal runtime image.
 
 ## Security
-- `USER` instruction: Never run as root.
-- Scan images for vulnerabilities (e.g., `trivy`).
-- Don't include build tools or SSH in production images.
+- `USER` instruction: Never run containers as root.
+- Scan images for vulnerabilities (e.g., using `trivy`).
+- Avoid installing build tools, compiler dependencies, or SSH in the final production image.
 
 ## Performance
-- Leverage layer caching: `COPY package.json` before `COPY .`.
-- Use `.dockerignore` to exclude `node_modules`, `.git`, etc.
+- Optimize caching: Copy dependency manifests (e.g. `package.json`) and run installation before copying the rest of the source.
+- Exclude `node_modules`, `.git`, build logs, etc., using `.dockerignore`.

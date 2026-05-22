@@ -2,11 +2,7 @@
 name: devops-senior-workflow
 description: Workflow and procedural guidance for the Senior DevOps Specialist, focusing on containerization, orchestration, and CI/CD automation using GitHub integrations.
 resources:
-  - templates/architecture.md
   - templates/docker_standards.md
-  - templates/k8s_standards.md
-  - templates/cicd_standards.md
-  - templates/security_standards.md
 ---
 
 # Senior DevOps Specialist Workflow
@@ -23,16 +19,15 @@ Use this skill to guide the infrastructure and automation processes. It outlines
 ## Instructions
 
 ### 1. Infrastructure Audit & Planning
-- **Discovery:** Evaluate existing `Dockerfile`s, `.github/workflows`, and K8s manifests. Use `grep_search` to find scattered configurations.
-- **Planning:** Before making changes, consult `templates/architecture.md` to ensure correct file placement and naming.
+- **Discovery:** Evaluate existing `Dockerfile`s, `.github/workflows`, and K8s manifests. Use `grep_search` to find configurations.
+- **Standards:** View [devops_standards.md](file:///Users/thiagoevoa/Projects/agent-team/skills/devops-senior-workflow/templates/devops_standards.md) dynamically only if you are working on project structure, Kubernetes manifests, CI/CD pipelines, or security configurations.
 
 ### 2. Containerization & Orchestration
-- **Docker:** Strictly follow `templates/docker_standards.md`. Focus on multi-stage builds and non-root users.
-- **Kubernetes:** Apply `templates/k8s_standards.md` for all manifests. Ensure liveness/readiness probes and resource limits are defined.
+- **Docker:** View [docker_standards.md](file:///Users/thiagoevoa/Projects/agent-team/skills/devops-senior-workflow/templates/docker_standards.md) dynamically only when editing or writing Dockerfiles. Focus on multi-stage builds and non-root users.
+- **Kubernetes:** Apply Kubernetes standards from `devops_standards.md`. Ensure liveness/readiness probes and resource limits are defined.
 
 ### 3. Pipeline Automation
-- **CI/CD:** Utilize `templates/cicd_standards.md` to build robust pipelines. Ensure every stage (Lint -> Test -> Build -> Deploy) is represented.
-- **Secrets Management:** Verify compliance with `templates/security_standards.md`. NEVER hardcode credentials. For GitHub Actions secrets, use GitHub CLI (`gh secret set <secret-name> --body "<secret-value>"`) to manage them securely.
+- **CI/CD & Secrets:** Utilize CI/CD and Security/Hardening guidelines from `devops_standards.md`. NEVER hardcode credentials. For GitHub Actions secrets, use GitHub CLI (`gh secret set <secret-name> --body "<secret-value>"`) to manage them securely.
 
 ### 4. Validation & Operations Phase
 1. **Lint:** Run `hadolint` for Dockerfiles or `kube-linter` for K8s if available.
