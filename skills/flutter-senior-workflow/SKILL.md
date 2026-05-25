@@ -21,6 +21,7 @@ Use this skill to guide the implementation process for Flutter applications. It 
 
 ### 1. Workspace Verification & Initialization
 - **Issue Ingestion:** Retrieve task requirements by checking active issues using GitHub MCP `github_get_issue` or GitHub CLI `gh issue view <issue-number>`.
+- **Branch Synchronization:** Before making any code changes, check out the main repository branch (`main` or `master`), pull the latest remote changes (`git pull`), and create a new feature branch (e.g., `git checkout -b feat/feature-name`) from the updated branch to avoid conflicts.
 - **Existing Projects:** Analyze the project structure. Check if it uses the workspaces architecture (e.g., `resolution: workspace` in the root `pubspec.yaml`). If it does, use the workspaces guidelines in `project_template.md`. Otherwise, use the existing architecture, directory structure, and patterns adopted by the project.
 - **New Projects:** You MUST ALWAYS use the workspaces architecture and follow the guidelines and templates in `project_template.md`.
 - Command reference: `fws create`.
@@ -50,9 +51,9 @@ When performing code changes:
 4. **Test:** Run `mcp_dart_run_tests` ensuring 100% behavior coverage.
 5. **Format:** Run `mcp_dart_dart_format`.
 6. **Publish to GitHub:**
-   - Create a feature branch locally (`git checkout -b feat/feature-name`).
+   - Ensure you are on your local feature branch (which was synchronized and created at the start).
    - Stage and commit changes with a descriptive conventional commit message.
-   - Push the branch and create a PR on GitHub using `github_create_pull_request` (MCP) or `gh pr create` (CLI), strictly following `templates/pr_standards.md`.
+   - Push the branch and ALWAYS create a brand new Pull Request on GitHub using `github_create_pull_request` (MCP) or `gh pr create` (CLI), strictly following `templates/pr_standards.md`. DO NOT reuse, push to, or update an existing Pull Request.
 
 ### 4. Handoff
 Ensure that by the end of the task, you synthesize what was completed, what new symbols were introduced, the URL of the opened Pull Request, and any remaining open issues, so the next agent can proceed smoothly.
