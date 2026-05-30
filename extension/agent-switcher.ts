@@ -50,6 +50,7 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     ctx.ui.notify("Agent Switcher loaded. Use `/agent` to switch agents.", "info");
     currentAgent = null;
+    (global as any).activeAgentName = "None";
   });
 
   // Register /agent command
@@ -76,6 +77,7 @@ export default function (pi: ExtensionAPI) {
         }
 
         currentAgent = agent;
+        (global as any).activeAgentName = agent.name;
         ctx.ui.notify(
           `✅ Loaded agent: ${agent.name}\n\n${agent.description}`,
           "info"
@@ -94,6 +96,7 @@ export default function (pi: ExtensionAPI) {
         const agent = agents.find((a) => a.name === selected);
         if (agent) {
           currentAgent = agent;
+          (global as any).activeAgentName = agent.name;
           ctx.ui.notify(
             `✅ Loaded agent: ${agent.name}\n\n${agent.description}`,
             "info"
@@ -128,6 +131,7 @@ export default function (pi: ExtensionAPI) {
               const loaded = await loadAgent(agentName);
               if (loaded) {
                 agentToLoad = loaded;
+                (global as any).activeAgentName = agentName;
                 ctx.ui.notify(`ℹ️ Auto-loaded agent "${agentName}" based on prompt keywords`, "info");
                 ctx.ui.setStatus("agent", `Using: ${agentName} (auto)`);
                 break;
@@ -152,15 +156,18 @@ export default function (pi: ExtensionAPI) {
   // Track when agent is loaded on session start
   pi.on("session_start", async (_event, ctx) => {
     ctx.ui.setStatus("agent", currentAgent ? `Using: ${currentAgent.name}` : "None");
+    (global as any).activeAgentName = currentAgent ? currentAgent.name : "None";
   });
 
   // Reset status bar when agent loop ends if it was auto-loaded
   pi.on("agent_end", async (_event, ctx) => {
     ctx.ui.setStatus("agent", currentAgent ? `Using: ${currentAgent.name}` : "None");
+    (global as any).activeAgentName = currentAgent ? currentAgent.name : "None";
   });
 
   // Clear on shutdown
   pi.on("session_shutdown", async (_event, _ctx) => {
     currentAgent = null;
+    (global as any).activeAgentName = "None";
   });
 }
