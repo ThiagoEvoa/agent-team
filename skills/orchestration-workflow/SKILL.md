@@ -29,7 +29,7 @@ To keep token usage minimal and context windows clean:
 - **Concise Prompts**: When invoking subagents, provide ONLY the specific, minimal subset of requirements/specifications related to the current task. Do NOT pass the entire specification file unless the task depends on all of it.
 - **Isolate Context**: Do NOT pass full chat histories or unrelated files when spawning new agents. Use branch/share workspace modes selectively if supported to keep workspace footprint low.
 - **Feedback Stripping**: When cycling back to the developer agent with reviewer feedback, pass ONLY the specific "Required Improvements" bullet points. Strip out conversational text, nitpicks, and general feedback.
-- **Targeted Operations**: Instruct subagents to read only specific files and use precise line numbers or range-based lookups (`view_file` with `StartLine`/`EndLine`) instead of dumping full file contents or repeating wide directory scans.
+- **Targeted Operations**: Instruct subagents to read only specific files and use the helper script `scripts/extract_section.py` to extract precise sections from standard/template files (or use `view_file` with `StartLine`/`EndLine` for specific code files) instead of dumping full file contents or repeating wide directory scans.
 - **No Conversational Overhead**: All reports (Handoff, Review, Orchestrator progress) must be formatted as raw bullet points, avoiding pleasantries or verbose explanations.
 
 ## Workflow Instructions

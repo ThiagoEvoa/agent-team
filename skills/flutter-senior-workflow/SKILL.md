@@ -29,17 +29,21 @@ Use this skill to guide the implementation process for Flutter applications. It 
 ### 2. Implementation with Dart MCP & Templates
 When performing code changes:
 - **Standards:**
-  - **Workspaces:** View [project_template.md](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md) dynamically. To conserve tokens, use `StartLine` and `EndLine` to read only the specific section needed:
-    - Architecture & Packages: [L7-41](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L7-L41)
-    - Directory Structure: [L43-75](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L43-L75)
-    - `pubspec.yaml` Template: [L80-109](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L80-L109)
-    - Router Templates: [L110-133](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L110-L133)
-    - Model Template: [L134-158](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L134-L158)
-    - Repository Template: [L159-171](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L159-L171)
-    - API / Data Source Template: [L173-209](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L173-L209)
-    - ViewModel Template: [L211-249](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L211-L249)
-    - UI View Template: [L250-303](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L250-L303)
-    - Code Generation & Integration: [L305-334](file:///Users/thiagoevoa/Projects/agent-team/skills/flutter-senior-workflow/templates/project_template.md#L305-L334)
+  - **Workspaces:** To conserve tokens and avoid reading the entire file, use the Python helper script `scripts/extract_section.py` to extract only the needed section from `project_template.md`.
+    Example command: `python3 scripts/extract_section.py skills/flutter-senior-workflow/templates/project_template.md "<section_name>"`
+    Available sections:
+    - "Workspace Architecture & Packages"
+    - "Feature Package Directory Structure"
+    - "pubspec.yaml"
+    - "lib/new_feature.dart"
+    - "lib/src/util/router/router.dart"
+    - "lib/src/data/models/new_feature_model.dart"
+    - "lib/src/data/repositories/new_feature_repository.dart"
+    - "lib/src/data/datasources/new_feature_api.dart"
+    - "lib/src/ui/view_models/new_feature_view_model.dart"
+    - "lib/src/ui/views/new_feature_view.dart"
+    - "Code Generation"
+    - "Add to GoRouter routes"
   - **Traditional (Non-Workspace) Projects:** Analyze existing files in the project to learn the adopted patterns, structure, and libraries, and conform to them.
 - **Discovery:** Use `mcp_dart_resolve_workspace_symbol` to find definitions. Use `mcp_dart_hover` or `mcp_dart_signature_help` to understand unknown APIs before implementing.
 - **Quality:** Run `mcp_dart_analyze_files`, `mcp_dart_dart_format`, and `mcp_dart_dart_fix`.

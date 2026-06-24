@@ -27,8 +27,7 @@ Use this skill to guide the implementation process for Dart Frog backend service
 - **Tooling:** Ensure `dart_frog` CLI is used for scaffolding when creating new routes (`dart_frog new route`).
 
 ### 2. Implementation with Dart MCP & Templates
-When performing code changes:
-- **Standards:** View [backend_standards.md](file:///Users/thiagoevoa/Projects/agent-team/skills/dartfrog-senior-workflow/templates/backend_standards.md) dynamically only if you are modifying routes, middleware, or writing tests. Do not load this file otherwise.
+- **Standards:** To conserve tokens, use the helper script `scripts/extract_section.py` (e.g. `python3 scripts/extract_section.py skills/dartfrog-senior-workflow/templates/backend_standards.md "<section_name>"`) to query only the necessary sections (e.g., "Middleware", "Testing", etc.) dynamically if you are modifying routes, middleware, or writing tests.
 - **Discovery:** Use `mcp_dart_resolve_workspace_symbol` to find models and repositories.
 
 ### 3. Execution Phase

@@ -36,7 +36,7 @@ The reviewer must support three primary modes of operation:
 
 ### 2. Analysis Workflow (Applies to all modes)
 1. **Fetch Data:** Retrieve content for the target files or directories, or PR diffs.
-2. **Gap Analysis:** Compare code against all sections of `templates/review_standards.md` with a highly critical eye, specifically looking for architectural violations, technical debt, or insecure patterns.
+2. **Gap Analysis:** Compare code against relevant sections of `templates/review_standards.md` with a highly critical eye. To conserve tokens, use the helper script `scripts/extract_section.py` (e.g. `python3 scripts/extract_section.py skills/dart-senior-reviewer-workflow/templates/review_standards.md "<section_name>"`) to query only the necessary sections (e.g., "SOLID Principles", "Security & Data Integrity", etc.).
 3. **Empirical Validation:** Attempt to run `dart analyze`, `dart test`, and `dart pub outdated --mode=security` (if applicable) via `run_shell_command` to gather factual data.
 4. **Generate Report:** Present findings directly to the user (and post to GitHub if reviewing a PR) strictly using the **Feedback Structure**.
 

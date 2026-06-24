@@ -20,11 +20,11 @@ Use this skill to guide the infrastructure and automation processes. It outlines
 
 ### 1. Infrastructure Audit & Planning
 - **Discovery:** Evaluate existing `Dockerfile`s, `.github/workflows`, and K8s manifests. Use `grep_search` to find configurations.
-- **Standards:** View [devops_standards.md](file:///Users/thiagoevoa/Projects/agent-team/skills/devops-senior-workflow/templates/devops_standards.md) dynamically only if you are working on project structure, Kubernetes manifests, CI/CD pipelines, or security configurations.
+- **Standards:** To conserve tokens, use the helper script `scripts/extract_section.py` (e.g. `python3 scripts/extract_section.py skills/devops-senior-workflow/templates/devops_standards.md "<section_name>"`) to query only the necessary sections (e.g. "Kubernetes", "Security & Hardening", etc.) dynamically if you are working on project structure, Kubernetes manifests, CI/CD pipelines, or security configurations.
 
 ### 2. Containerization & Orchestration
-- **Docker:** View [docker_standards.md](file:///Users/thiagoevoa/Projects/agent-team/skills/devops-senior-workflow/templates/docker_standards.md) dynamically only when editing or writing Dockerfiles. Focus on multi-stage builds and non-root users.
-- **Kubernetes:** Apply Kubernetes standards from `devops_standards.md`. Ensure liveness/readiness probes and resource limits are defined.
+- **Docker:** To conserve tokens, use the helper script `scripts/extract_section.py` (e.g. `python3 scripts/extract_section.py skills/devops-senior-workflow/templates/docker_standards.md "<section_name>"`) to query only the necessary sections (e.g. "Multi-Stage Builds", "Security", etc.) dynamically when editing or writing Dockerfiles. Focus on multi-stage builds and non-root users.
+- **Kubernetes:** Apply Kubernetes standards (extracted from `devops_standards.md`). Ensure liveness/readiness probes and resource limits are defined.
 
 ### 3. Pipeline Automation
 - **CI/CD & Secrets:** Utilize CI/CD and Security/Hardening guidelines from `devops_standards.md`. NEVER hardcode credentials. For GitHub Actions secrets, use GitHub CLI (`gh secret set <secret-name> --body "<secret-value>"`) to manage them securely.
