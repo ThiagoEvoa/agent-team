@@ -207,38 +207,24 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 			// Customize Header
 			ctx.ui.setHeader((tui, theme) => {
 				activeTui = tui;
-				return {
-					render(width: number): string[] {
-						const activeAgentName = getActiveAgentName();
-						const cwd = process.cwd();
-						const home = homedir();
-						const displayPath = cwd.startsWith(home) ? cwd.replace(home, "~") : cwd;
+					return {
+						render(width: number): string[] {
+							const cwd = process.cwd();
+							const home = homedir();
+							const displayPath = cwd.startsWith(home) ? cwd.replace(home, "~") : cwd;
 
-						const usage = ctx.getContextUsage();
-						const percent = usage?.percent ?? 0;
-						const pctStr = `${Math.round(percent)}%`;
+							const logoPart1 = theme.fg("accent", "██████   ██");
+							const logoPart2 = theme.fg("accent", "██  ██     ");
+							const logoPart3 = theme.fg("accent", "██████   ██");
+							const logoPart4 = theme.fg("accent", "██       ██");
 
-						const barWidth = 8;
-						const filledWidth = Math.min(barWidth, Math.round((percent / 100) * barWidth));
-						const emptyWidth = Math.max(0, barWidth - filledWidth);
-						const filledStr = "█".repeat(filledWidth);
-						const emptyStr = "░".repeat(emptyWidth);
+							const line1 = logoPart1 + " ".repeat(6) + theme.fg("borderAccent", `version ${version}`);
+							const line2 = logoPart2;
+							const line3 = logoPart3;
+							const line4 = logoPart4 + " ".repeat(6) + theme.fg("muted", displayPath);
 
-						const logoPart1 = theme.fg("accent", "██████   ██");
-						const logoPart2 = theme.fg("accent", "██  ██     ");
-						const logoPart3 = theme.fg("accent", "██████   ██");
-						const logoPart4 = theme.fg("accent", "██       ██");
-
-						const line1 = logoPart1 + " ".repeat(6) + theme.fg("borderAccent", `version ${version}`);
-						const agentDisplay = (activeAgentName && activeAgentName !== "None") ? `agent: ${activeAgentName}` : "agent: ";
-						const line2 = logoPart2 + " ".repeat(6) + theme.fg("muted", agentDisplay);
-						
-						const barPart = theme.fg("success", filledStr) + theme.fg("dim", emptyStr);
-						const line3 = logoPart3 + " ".repeat(6) + theme.fg("muted", "context  ") + barPart + " " + theme.fg("muted", pctStr);
-						const line4 = logoPart4 + " ".repeat(6) + theme.fg("muted", displayPath);
-
-						return [line1, line2, line3, line4];
-					},
+							return [line1, line2, line3, line4];
+						},
 					invalidate() {}
 				};
 			});
@@ -246,21 +232,41 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 			// Customize Footer
 			ctx.ui.setFooter((tui, theme, footerData) => {
 				activeTui = tui;
-				return {
-					dispose() {},
-					invalidate() {},
-					render(width: number): string[] {
-						const speedStr = `${tokensPerSec.toFixed(2)} T/s`;
-						const left = theme.fg("muted", speedStr);
-						const modelName = getModelName(ctx.model);
-						const right = theme.fg("muted", modelName);
+					return {
+						dispose() {},
+						invalidate() {},
+						render(width: number): string[] {
+							// Footer Line: [agent] [context bar] [T/s] (left) and [model] (right)
+							const activeAgentName = getActiveAgentName();
+							const agentDisplay = (activeAgentName && activeAgentName !== "None") ? `agent: ${activeAgentName}` : "agent: ";
+							const agentPart = theme.fg("muted", agentDisplay);
 
-						const padSize = width - visibleWidth(left) - visibleWidth(right);
-						const footerLine = left + " ".repeat(Math.max(1, padSize)) + right;
+							const usage = ctx.getContextUsage();
+							const percent = usage?.percent ?? 0;
+							const pctStr = `${Math.round(percent)}%`;
+							const barWidth = 8;
+							const filledWidth = Math.min(barWidth, Math.round((percent / 100) * barWidth));
+							const emptyWidth = Math.max(0, barWidth - filledWidth);
+							const filledStr = "█".repeat(filledWidth);
+							const emptyStr = "░".repeat(emptyWidth);
+							const barPart = theme.fg("success", filledStr) + theme.fg("dim", emptyStr);
+							const contextPart = theme.fg("muted", "context: ") + barPart + " " + theme.fg("muted", pctStr);
 
-						return [truncateToWidth(footerLine, width)];
-					}
-				};
+							const speedStr = `${tokensPerSec.toFixed(2)} T/s`;
+							const speedPart = theme.fg("muted", speedStr);
+
+							const sep = theme.fg("dim", " | ");
+							const leftSide = `${agentPart}${sep}${contextPart}${sep}${speedPart}`;
+
+							const modelName = getModelName(ctx.model);
+							const rightSide = theme.fg("muted", modelName);
+
+							const padSize = width - visibleWidth(leftSide) - visibleWidth(rightSide);
+							const footerLine = leftSide + " ".repeat(Math.max(1, padSize)) + rightSide;
+
+							return [truncateToWidth(footerLine, width)];
+						}
+					};
 			});
 		}
 	});
