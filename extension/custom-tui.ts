@@ -1,8 +1,8 @@
-import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
-import { visibleWidth as tuiVisibleWidth, truncateToWidth as tuiTruncateToWidth } from "@earendil-works/pi-tui";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { truncateToWidth as tuiTruncateToWidth, visibleWidth as tuiVisibleWidth } from "@earendil-works/pi-tui";
+import * as fs from "fs";
 import { homedir } from "os";
 import * as path from "path";
-import * as fs from "fs";
 
 const ANSI_ESCAPE_REGEX = /\x1B\[[0-9;]*[a-zA-Z]/g;
 const SINGLE_CELL_BLOCK_CHARS_REGEX = /[▰▱]/g;
@@ -211,66 +211,68 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 			// Customize Header
 			ctx.ui.setHeader((tui, theme) => {
 				activeTui = tui;
-					return {
-						render(width: number): string[] {
-							const cwd = process.cwd();
-							const home = homedir();
-							const displayPath = cwd.startsWith(home) ? cwd.replace(home, "~") : cwd;
+				return {
+					render(width: number): string[] {
+						const cwd = process.cwd();
+						const home = homedir();
+						const displayPath = cwd.startsWith(home) ? cwd.replace(home, "~") : cwd;
 
-							const logoPart1 = theme.fg("accent", "██████   ██");
-							const logoPart2 = theme.fg("accent", "██  ██     ");
-							const logoPart3 = theme.fg("accent", "██████   ██");
-							const logoPart4 = theme.fg("accent", "██       ██");
+						const logoPart1 = theme.fg("accent", "██████   ██");
+						const logoPart2 = theme.fg("accent", "██  ██     ");
+						const logoPart3 = theme.fg("accent", "██████   ██");
+						const logoPart4 = theme.fg("accent", "██       ██");
 
-							const line1 = logoPart1 + " ".repeat(6) + theme.fg("borderAccent", `version ${version}`);
-							const line2 = logoPart2;
-							const line3 = logoPart3;
-							const line4 = logoPart4 + " ".repeat(6) + theme.fg("muted", displayPath);
+						const line1 = logoPart1 + " ".repeat(6) + theme.fg("borderAccent", `version ${version}`);
+						const line2 = logoPart2;
+						const line3 = logoPart3;
+						const line4 = logoPart4 + " ".repeat(6) + theme.fg("muted", displayPath);
 
-							return [line1, line2, line3, line4];
-						},
-					invalidate() {}
+						return [line1, line2, line3, line4];
+					},
+					invalidate() { }
 				};
 			});
 
 			// Customize Footer
 			ctx.ui.setFooter((tui, theme, footerData) => {
 				activeTui = tui;
-					return {
-						dispose() {},
-						invalidate() {},
-						render(width: number): string[] {
-							// Footer Line: [agent] [context bar] [T/s] (left) and [model] (right)
-							const activeAgentName = getActiveAgentName();
-							const agentDisplay = (activeAgentName && activeAgentName !== "None") ? `agent: ${activeAgentName}` : "agent: ";
-							const agentPart = theme.fg("muted", agentDisplay);
+				return {
+					dispose() { },
+					invalidate() { },
+					render(width: number): string[] {
+						// Footer Line: [agent] [context bar] [T/s] (left) and [model] (right)
+						const activeAgentName = getActiveAgentName();
+						const agentDisplay = (activeAgentName && activeAgentName !== "None") ? `agent: ${activeAgentName}` : "agent: ";
+						const agentPart = theme.fg("muted", agentDisplay);
 
-							const usage = ctx.getContextUsage();
-							const percent = usage?.percent ?? 0;
-							const pctStr = `${Math.round(percent)}%`;
-							const barWidth = 8;
-							const filledWidth = Math.min(barWidth, Math.round((percent / 100) * barWidth));
-							const emptyWidth = Math.max(0, barWidth - filledWidth);
-							const filledStr = "▰".repeat(filledWidth);
-							const emptyStr = "▱".repeat(emptyWidth);
-							const barPart = theme.fg("success", filledStr) + theme.fg("dim", emptyStr);
-							const contextPart = theme.fg("muted", "context: ") + barPart + " " + theme.fg("muted", pctStr);
+						const usage = ctx.getContextUsage();
+						const rawPercent = usage?.percent ?? 0;
+						const percent = Math.min(100, Math.max(0, rawPercent));
+						const pctStr = `${Math.round(percent)}%`;
+						const barWidth = 8;
+						const filledWidth = rawPercent > 0 ? Math.max(1, Math.min(barWidth, Math.floor((percent / 100) * barWidth))) : 0;
+						const emptyWidth = Math.max(0, barWidth - filledWidth);
+						const filledStr = "▰".repeat(filledWidth);
+						const emptyStr = "▱".repeat(emptyWidth);
+						const barColor = percent > 85 ? "error" : percent > 65 ? "warning" : "success";
+						const barPart = theme.fg(barColor, filledStr) + theme.fg("dim", emptyStr);
+						const contextPart = theme.fg("muted", "context: ") + barPart + " " + theme.fg("muted", pctStr);
 
-							const speedStr = `${tokensPerSec.toFixed(2)} T/s`;
-							const speedPart = theme.fg("muted", speedStr);
+						const speedStr = `${tokensPerSec.toFixed(2)} T/s`;
+						const speedPart = theme.fg("muted", speedStr);
 
-							const sep = theme.fg("dim", " | ");
-							const leftSide = `${agentPart}${sep}${contextPart}${sep}${speedPart}`;
+						const sep = theme.fg("dim", " | ");
+						const leftSide = `${agentPart}${sep}${contextPart}${sep}${speedPart}`;
 
-							const modelName = getModelName(ctx.model);
-							const rightSide = theme.fg("muted", modelName);
+						const modelName = getModelName(ctx.model);
+						const rightSide = theme.fg("muted", modelName);
 
-							const padSize = width - visibleWidth(leftSide) - visibleWidth(rightSide);
-							const footerLine = leftSide + " ".repeat(Math.max(1, padSize)) + rightSide;
+						const padSize = width - visibleWidth(leftSide) - visibleWidth(rightSide);
+						const footerLine = leftSide + " ".repeat(Math.max(1, padSize)) + rightSide;
 
-							return [truncateToWidth(footerLine, width)];
-						}
-					};
+						return [truncateToWidth(footerLine, width)];
+					}
+				};
 			});
 		}
 	});
