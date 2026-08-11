@@ -4,12 +4,16 @@ import { homedir } from "os";
 import * as path from "path";
 import * as fs from "fs";
 
+const ANSI_ESCAPE_REGEX = /\x1B\[[0-9;]*[a-zA-Z]/g;
+const SINGLE_CELL_BLOCK_CHARS_REGEX = /[▰▱]/g;
+
 // Strip ANSI escapes helper in case visibleWidth fails
 function visibleWidth(str: string): number {
+	const normalized = str.replace(SINGLE_CELL_BLOCK_CHARS_REGEX, "X");
 	try {
-		return tuiVisibleWidth(str);
+		return tuiVisibleWidth(normalized);
 	} catch {
-		return str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").length;
+		return normalized.replace(ANSI_ESCAPE_REGEX, "").length;
 	}
 }
 
@@ -18,7 +22,7 @@ function truncateToWidth(str: string, width: number): string {
 	try {
 		return tuiTruncateToWidth(str, width);
 	} catch {
-		const stripped = str.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "");
+		const stripped = str.replace(ANSI_ESCAPE_REGEX, "");
 		if (stripped.length <= width) return str;
 		return stripped.slice(0, width);
 	}
@@ -247,8 +251,8 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 							const barWidth = 8;
 							const filledWidth = Math.min(barWidth, Math.round((percent / 100) * barWidth));
 							const emptyWidth = Math.max(0, barWidth - filledWidth);
-							const filledStr = "█".repeat(filledWidth);
-							const emptyStr = "░".repeat(emptyWidth);
+							const filledStr = "▰".repeat(filledWidth);
+							const emptyStr = "▱".repeat(emptyWidth);
 							const barPart = theme.fg("success", filledStr) + theme.fg("dim", emptyStr);
 							const contextPart = theme.fg("muted", "context: ") + barPart + " " + theme.fg("muted", pctStr);
 
