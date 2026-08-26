@@ -4,8 +4,17 @@ import os
 import json
 import re
 import argparse
+import subprocess
 
 STATE_FILE = ".orchestration_state.json"
+
+def run_cmd(cmd, check=False):
+    """Helper to run a shell command and return stdout/stderr."""
+    try:
+        res = subprocess.run(cmd, shell=True, text=True, capture_output=True, check=check)
+        return res.returncode, res.stdout.strip(), res.stderr.strip()
+    except subprocess.CalledProcessError as e:
+        return e.returncode, e.stdout.strip(), e.stderr.strip()
 
 def load_state():
     if os.path.exists(STATE_FILE):
@@ -17,7 +26,54 @@ def save_state(state):
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2)
 
-def init_spec(spec_path):
+def fetch_project_meta(project_number, owner="@me"):
+    """Fetch GitHub Project ID, Status field ID, and option IDs."""
+    print(f"[*] Fetching metadata for Project #{project_number} (owner: {owner})...")
+    
+    # 1. Project view
+    code, out, err = run_cmd(f"gh project view {project_number} --owner \"{owner}\" --format json")
+    if code != 0:
+        print(f"[ERROR] Failed to view project: {err}")
+        return None
+    proj_data = json.loads(out)
+    project_id = proj_data.get("id")
+    project_title = proj_data.get("title")
+
+    # 2. Field list
+    code, out, err = run_cmd(f"gh project field-list {project_number} --owner \"{owner}\" --format json")
+    if code != 0:
+        print(f"[ERROR] Failed to list project fields: {err}")
+        return None
+    fields_data = json.loads(out)
+    
+    status_field = None
+    for field in fields_data.get("fields", []):
+        if field.get("name", "").lower() == "status":
+            status_field = field
+            break
+
+    if not status_field:
+        print("[WARNING] Could not locate 'Status' field on project.")
+        return None
+
+    status_field_id = status_field.get("id")
+    options_map = {}
+    for opt in status_field.get("options", []):
+        options_map[opt.get("name").lower()] = {
+            "id": opt.get("id"),
+            "name": opt.get("name")
+        }
+
+    return {
+        "project_number": project_number,
+        "project_owner": owner,
+        "project_id": project_id,
+        "project_title": project_title,
+        "status_field_id": status_field_id,
+        "status_options": options_map
+    }
+
+def init_spec(spec_path, project_number=None, project_owner="@me", repo=None):
     if not os.path.exists(spec_path):
         print(f"[ERROR] Specification file '{spec_path}' does not exist.")
         sys.exit(1)
@@ -27,7 +83,6 @@ def init_spec(spec_path):
         content = f.read()
 
     # Find tasks / checklist items
-    # Matches: - [ ] Task name OR - [x] Task name
     tasks = []
     lines = content.splitlines()
     for idx, line in enumerate(lines):
@@ -42,10 +97,11 @@ def init_spec(spec_path):
                 "status": status,
                 "loops": 0,
                 "notes": "",
-                "line_no": idx + 1
+                "line_no": idx + 1,
+                "gh_item_id": None
             })
 
-    # If no checklist tasks found, try matching regular list items under a "Tasks" or "Requirements" header
+    # If no checklist tasks found, try matching regular list items
     if not tasks:
         in_task_section = False
         for idx, line in enumerate(lines):
@@ -57,7 +113,6 @@ def init_spec(spec_path):
                 in_task_section = False
             
             if in_task_section:
-                # Match numbered list or bullet list
                 item_match = re.match(r'^\s*[\-\*]\s+(.+)$', line)
                 num_match = re.match(r'^\s*\d+\.\s+(.+)$', line)
                 item_text = None
@@ -73,13 +128,47 @@ def init_spec(spec_path):
                         "status": "pending",
                         "loops": 0,
                         "notes": "",
-                        "line_no": idx + 1
+                        "line_no": idx + 1,
+                        "gh_item_id": None
                     })
 
     state = {
         "spec_path": os.path.abspath(spec_path),
         "tasks": tasks
     }
+
+    # If GitHub Project is specified, link and populate backlog items
+    if project_number:
+        proj_meta = fetch_project_meta(project_number, project_owner)
+        if proj_meta:
+            state["github_project"] = proj_meta
+            backlog_opt = proj_meta["status_options"].get("backlog") or proj_meta["status_options"].get("todo")
+            backlog_opt_id = backlog_opt["id"] if backlog_opt else None
+
+            print(f"[*] Syncing {len(tasks)} tasks to GitHub Project Backlog...")
+            for task in tasks:
+                create_cmd = f"gh project item-create {project_number} --owner \"{project_owner}\" --title \"{task['text']}\" --body \"Spec Task #{task['id']}: {task['text']}\" --format json"
+                code, out, err = run_cmd(create_cmd)
+                if code == 0:
+                    try:
+                        item_json = json.loads(out)
+                        task["gh_item_id"] = item_json.get("id")
+                        print(f"  [+] Created task #{task['id']} on board: {task['gh_item_id']}")
+                        
+                        # Set to Backlog status
+                        if backlog_opt_id and proj_meta.get("project_id"):
+                            edit_cmd = (
+                                f"gh project item-edit --id \"{task['gh_item_id']}\" "
+                                f"--project-id \"{proj_meta['project_id']}\" "
+                                f"--field-id \"{proj_meta['status_field_id']}\" "
+                                f"--single-select-option-id \"{backlog_opt_id}\""
+                            )
+                            run_cmd(edit_cmd)
+                    except Exception as e:
+                        print(f"  [!] Could not parse item output: {e}")
+                else:
+                    print(f"  [!] Failed to create project item for #{task['id']}: {err}")
+
     save_state(state)
     print(f"[SUCCESS] Initialized orchestration tracker with {len(tasks)} tasks.")
     print_status(state)
@@ -93,20 +182,29 @@ def print_status(state=None):
 
     print("\n================ ORCHESTRATION STATUS ================")
     print(f"Spec Path: {state.get('spec_path')}")
+    if "github_project" in state:
+        proj = state["github_project"]
+        print(f"GitHub Project: #{proj.get('project_number')} ({proj.get('project_title')}) [Owner: {proj.get('project_owner')}]")
     print("------------------------------------------------------")
     tasks = state.get("tasks", [])
     if not tasks:
         print("No tasks tracked.")
     for t in tasks:
         status_symbol = " [PND] "
-        if t["status"] == "dev":
+        st = t["status"].lower()
+        if st in ["dev", "in progress", "in_progress"]:
             status_symbol = "*[DEV]*"
-        elif t["status"] == "review":
+        elif st in ["review", "in review", "in_review"]:
             status_symbol = "=[REV]="
-        elif t["status"] == "done":
+        elif st in ["blocked"]:
+            status_symbol = "![BLK]!"
+        elif st in ["done"]:
             status_symbol = " [DON] "
+        elif st in ["ready"]:
+            status_symbol = " [RDY] "
             
-        print(f"ID #{t['id']:<2} | {status_symbol} | {t['text'][:50]:<50} | Loops: {t['loops']:<2} | {t['notes']}")
+        gh_info = f" | GH: {t['gh_item_id']}" if t.get("gh_item_id") else ""
+        print(f"ID #{t['id']:<2} | {status_symbol} | {t['text'][:45]:<45} | Loops: {t['loops']:<2}{gh_info} | {t['notes']}")
     print("======================================================\n")
 
 def get_next_task(state=None):
@@ -140,20 +238,53 @@ def update_task(task_id, status, loops=None, notes=None):
         sys.exit(1)
 
     tasks = state.get("tasks", [])
-    found = False
+    target_task = None
     for t in tasks:
         if t["id"] == task_id:
-            t["status"] = status.lower()
-            if loops is not None:
-                t["loops"] = loops
-            if notes is not None:
-                t["notes"] = notes
-            found = True
+            target_task = t
             break
 
-    if not found:
+    if not target_task:
         print(f"[ERROR] Task ID #{task_id} not found.")
         sys.exit(1)
+
+    target_task["status"] = status.lower()
+    if loops is not None:
+        target_task["loops"] = loops
+    if notes is not None:
+        target_task["notes"] = notes
+
+    # Sync with GitHub Project if configured
+    if "github_project" in state and target_task.get("gh_item_id"):
+        proj = state["github_project"]
+        target_status_key = status.lower()
+        # Normalization of status names
+        if target_status_key == "dev":
+            target_status_key = "in progress"
+        elif target_status_key == "review":
+            target_status_key = "in review"
+
+        matching_opt = None
+        for opt_key, opt_val in proj.get("status_options", {}).items():
+            if opt_key == target_status_key or opt_val.get("name", "").lower() == target_status_key:
+                matching_opt = opt_val
+                break
+
+        if matching_opt:
+            edit_cmd = (
+                f"gh project item-edit --id \"{target_task['gh_item_id']}\" "
+                f"--project-id \"{proj['project_id']}\" "
+                f"--field-id \"{proj['status_field_id']}\" "
+                f"--single-select-option-id \"{matching_opt['id']}\""
+            )
+            print(f"[*] Moving Project Card #{target_task['gh_item_id']} to '{matching_opt['name']}'...")
+            code, _, err = run_cmd(edit_cmd)
+            if code == 0:
+                print(f"[SUCCESS] Updated GitHub Project status to '{matching_opt['name']}'.")
+            else:
+                print(f"[WARNING] Failed to update GitHub Project column: {err}")
+        else:
+            print(f"[WARNING] Column status '{status}' not found on GitHub Project.")
 
     save_state(state)
     print(f"[SUCCESS] Updated Task #{task_id} status to '{status}'.")
@@ -167,16 +298,13 @@ def parse_feedback(raw_feedback):
 
     for line in lines:
         stripped = line.strip()
-        # Detect start of Required Improvements header
         if re.search(r'Required\s+Improvements', stripped, re.IGNORECASE):
             in_required_section = True
             continue
-        # Detect next header section or conclusion to stop
         elif in_required_section and (stripped.startswith("#") or re.search(r'^(Optional|Nitpicks|General\s+Feedback)', stripped, re.IGNORECASE)):
             in_required_section = False
 
         if in_required_section and stripped:
-            # Bullet point items
             if stripped.startswith("-") or stripped.startswith("*"):
                 required.append(stripped)
 
@@ -195,6 +323,9 @@ def main():
     # Init
     init_parser = subparsers.add_parser("init", help="Initialize orchestration tracking using a spec.md file")
     init_parser.add_argument("spec_path", help="Path to specification Markdown file")
+    init_parser.add_argument("--project", type=int, help="GitHub Project (v2) number")
+    init_parser.add_argument("--owner", default="@me", help="GitHub Project owner login (default: @me)")
+    init_parser.add_argument("--repo", help="GitHub Repository (owner/repo)")
 
     # Status
     subparsers.add_parser("status", help="Print current status of orchestration tasks")
@@ -203,9 +334,9 @@ def main():
     subparsers.add_parser("next", help="Get the next pending task and suggest the prompt")
 
     # Update
-    update_parser = subparsers.add_parser("update", help="Update a specific task status")
+    update_parser = subparsers.add_parser("update", help="Update a specific task status and sync GitHub Project column")
     update_parser.add_argument("task_id", type=int, help="Task ID to update")
-    update_parser.add_argument("status", choices=["pending", "dev", "review", "done"], help="New status")
+    update_parser.add_argument("status", choices=["pending", "backlog", "ready", "dev", "in progress", "review", "in review", "blocked", "done"], help="New status")
     update_parser.add_argument("--loops", type=int, help="Override loop iteration count")
     update_parser.add_argument("--notes", help="Update notes for the task")
 
@@ -216,7 +347,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "init":
-        init_spec(args.spec_path)
+        init_spec(args.spec_path, args.project, args.owner, args.repo)
     elif args.command == "status":
         print_status()
     elif args.command == "next":

@@ -11,16 +11,31 @@ interface AgentMeta {
 }
 
 let currentAgent: AgentMeta | null = null;
-const agentsDir = join(homedir(), ".pi/agent/agents");
+const agentsDir = join(homedir(), ".agents/agents");
 
 async function loadAgent(agentName: string): Promise<AgentMeta | null> {
   try {
-    const path = join(agentsDir, `${agentName}.md`);
-    const content = await readFile(path, "utf-8");
+    let path = join(agentsDir, `${agentName}.md`);
+    let content = "";
+    try {
+      content = await readFile(path, "utf-8");
+    } catch {
+      path = join(agentsDir, `${agentName}.json`);
+      content = await readFile(path, "utf-8");
+    }
 
     // Extract description from first markdown h1 or content
-    const descMatch = content.match(/^#\s+(.+)/m);
-    const desc = descMatch ? descMatch[1] : agentName;
+    let desc = agentName;
+    if (path.endsWith(".json")) {
+      try {
+        const parsed = JSON.parse(content);
+        desc = parsed.description || parsed.name || agentName;
+        content = parsed.instructions || content;
+      } catch {}
+    } else {
+      const descMatch = content.match(/^#\s+(.+)/m);
+      if (descMatch) desc = descMatch[1];
+    }
 
     return { name: agentName, description: desc, path, content };
   } catch (error) {
@@ -31,11 +46,14 @@ async function loadAgent(agentName: string): Promise<AgentMeta | null> {
 async function listAgents(): Promise<AgentMeta[]> {
   try {
     const files = await readdir(agentsDir);
-    const mdFiles = files.filter((f) => f.endsWith(".md") && f !== ".DS_Store");
+    const validFiles = files.filter((f) => (f.endsWith(".md") || f.endsWith(".json")) && f !== ".DS_Store");
     
     const agents: AgentMeta[] = [];
-    for (const file of mdFiles) {
-      const name = file.replace(".md", "");
+    const seenNames = new Set<string>();
+    for (const file of validFiles) {
+      const name = file.replace(/\.(md|json)$/, "");
+      if (seenNames.has(name)) continue;
+      seenNames.add(name);
       const agent = await loadAgent(name);
       if (agent) agents.push(agent);
     }
@@ -60,7 +78,7 @@ export default function (pi: ExtensionAPI) {
       const agents = await listAgents();
 
       if (!agents.length) {
-        ctx.ui.notify("❌ No agents found in ~/.pi/agent/agents/", "error");
+        ctx.ui.notify("❌ No agents found in ~/.agents/agents/", "error");
         return;
       }
 
