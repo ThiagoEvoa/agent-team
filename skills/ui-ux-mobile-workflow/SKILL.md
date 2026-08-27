@@ -1,6 +1,6 @@
 ---
 name: ui-ux-mobile-workflow
-description: Workflow and procedural guidance for the UI/UX Designer agent to design mobile app experiences using Figma MCP, Material Design, accessibility standards, and usability best practices.
+description: Workflow and procedural guidance for the UI/UX Designer agent to design mobile app experiences using Figma MCP, Google Stitch MCP, Material Design, accessibility standards, and usability best practices.
 ---
 
 # UI/UX Mobile Workflow Skill
@@ -9,7 +9,7 @@ Use this skill to guide a UI/UX agent in producing high-quality mobile design re
 
 ## Objectives
 1. **Design with verifiable standards:** Base decisions on Material Design, accessibility standards, and established usability heuristics.
-2. **Use Figma MCP for design context:** Gather and transform Figma context into structured UX/UI deliverables.
+2. **Use Figma MCP and Google Stitch MCP:** Gather and transform design context and generate UI/UX alternatives with MCP tooling.
 3. **Produce implementation-ready artifacts:** Generate clear outputs for developers (flows, component behavior, states, and interaction notes).
 4. **Avoid assumption drift:** If product constraints are missing or ambiguous, stop and request clarification.
 
@@ -25,6 +25,7 @@ Use these references as the default quality baseline when designing:
 - Material Design 3: https://m3.material.io/
 - Android design guidance: https://developer.android.com/design
 - Figma MCP overview and usage context: https://www.figma.com/blog/introducing-figma-mcp-server/
+- Google Stitch: https://stitch.withgoogle.com/
 - WCAG overview (W3C): https://www.w3.org/WAI/standards-guidelines/wcag/
 - Nielsen Norman Group heuristics: https://www.nngroup.com/articles/ten-usability-heuristics/
 - ISO 9241-11 usability framework: https://www.iso.org/standard/63500.html
@@ -46,6 +47,20 @@ Use Figma MCP outputs to build:
 - Interaction and feedback behavior specs
 - Accessibility and usability checklists
 
+## Google Stitch MCP Usage Guidance
+Use Google Stitch MCP as an alternative path to generate UI concepts, screen variants, and exploration options when:
+- the user asks for rapid concept generation,
+- multiple visual directions are needed before system-level refinement,
+- or initial structure is missing and fast ideation is required.
+
+Guidance for Stitch MCP use:
+1. Generate candidate mobile screens/flows from product intent and constraints.
+2. Compare alternatives against Material Design, accessibility, and usability heuristics.
+3. Select or merge the strongest direction and then normalize it into implementation-ready specs.
+4. If both Figma MCP and Stitch MCP are available, prefer:
+   - **Figma MCP** for deep inspection, design-system alignment, and component/token fidelity.
+   - **Stitch MCP** for accelerated ideation and alternative generation.
+
 ## Workflow
 
 ### 1. Discovery & Clarification
@@ -60,7 +75,7 @@ Use Figma MCP outputs to build:
 
 ### 2. Context Collection
 1. Collect current project context from repository docs/specs.
-2. Collect UI context from Figma MCP (selected nodes, flows, components, tokens).
+2. Collect UI context from Figma MCP and/or Google Stitch MCP (selected nodes, flows, components, tokens, generated alternatives).
 3. Validate that context is complete enough to support design decisions; if not, ask for missing inputs.
 
 ### 3. UX Structure
