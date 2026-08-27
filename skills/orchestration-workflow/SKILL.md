@@ -1,20 +1,11 @@
 ---
 name: orchestration-workflow
-description: Workflow and procedural guidance for the Orchestrator Agent to manage Spec-Driven Development (SDD) lifecycles via implementation, review loops, and GitHub Project backlog management.
+description: Workflow and procedural guidance for the Orchestrator Agent to manage Spec-Driven Development (SDD) lifecycles via implementation and review loops. GitHub Project board management is delegated to the product-owner agent.
 parameters:
   spec_path:
     type: string
     description: Absolute or relative path to the project specification markdown file (e.g. spec.md).
     required: true
-  project_number:
-    type: integer
-    description: Optional GitHub Project (v2) number to manage and sync tasks with.
-  project_owner:
-    type: string
-    description: Optional GitHub Project owner login (defaults to "@me" or current user/org).
-  repo:
-    type: string
-    description: Optional GitHub repository (e.g. "owner/repo") for creating linked issues.
   developer_agent:
     type: string
     description: Optional override for the developer agent to use (e.g., flutter-senior-developer).
@@ -44,57 +35,14 @@ To keep token usage minimal and context windows clean:
 
 ---
 
-## 📋 GitHub Projects & Backlog Management Guide
+## 📋 GitHub Project Board Management
 
-When a GitHub Project is targeted (or when `project_number` is provided), the Orchestrator manages the project board throughout the development lifecycle via the `gh` CLI.
+The Orchestrator does **not** manage the GitHub Project board directly. All board and backlog operations are delegated to the `product-owner` agent.
 
-### 1. Project Discovery & Status Field Mapping
-Inspect the project schema and map status column names to Option IDs:
-```bash
-# 1. Get Project ID
-gh project view <PROJECT_NUMBER> --owner "<PROJECT_OWNER>" --format json
-
-# 2. Get Field IDs and Single-Select Option IDs (Status, Priority, Size, etc.)
-gh project field-list <PROJECT_NUMBER> --owner "<PROJECT_OWNER>" --format json
-```
-Locate the **Status** field ID (`PVTSSF_...`) and the Option IDs for:
-- `Backlog`
-- `Ready`
-- `In progress`
-- `In review`
-- `Blocked`
-- `Done`
-
-### 2. Task / Issue Ingestion to Project Backlog
-For each task or checklist item in the specification:
-```bash
-# Option A: Create a draft issue directly in the project
-gh project item-create <PROJECT_NUMBER> --owner "<PROJECT_OWNER>" --title "Task Title" --body "Description..." --format json
-
-# Option B: Create a repository issue and link it to the project
-gh issue create --title "Task Title" --body "Description..." --repo "<REPO>"
-gh project item-add <PROJECT_NUMBER> --owner "<PROJECT_OWNER>" --url "<ISSUE_URL>"
-```
-Set the initial status to `Backlog` (or `Ready`):
-```bash
-gh project item-edit --id "<ITEM_ID>" --project-id "<PROJECT_ID>" --field-id "<STATUS_FIELD_ID>" --single-select-option-id "<BACKLOG_OPTION_ID>"
-```
-
-### 3. Lifecycle Column Transitions
-Update item statuses as execution progresses:
-```bash
-# Move to 'In progress' when development starts:
-gh project item-edit --id "<ITEM_ID>" --project-id "<PROJECT_ID>" --field-id "<STATUS_FIELD_ID>" --single-select-option-id "<IN_PROGRESS_OPTION_ID>"
-
-# Move to 'In review' when handed off to reviewer:
-gh project item-edit --id "<ITEM_ID>" --project-id "<PROJECT_ID>" --field-id "<STATUS_FIELD_ID>" --single-select-option-id "<IN_REVIEW_OPTION_ID>"
-
-# Move to 'Blocked' if feedback or dependency blocks progress:
-gh project item-edit --id "<ITEM_ID>" --project-id "<PROJECT_ID>" --field-id "<STATUS_FIELD_ID>" --single-select-option-id "<BLOCKED_OPTION_ID>"
-
-# Move to 'Done' when review is approved and code verified:
-gh project item-edit --id "<ITEM_ID>" --project-id "<PROJECT_ID>" --field-id "<STATUS_FIELD_ID>" --single-select-option-id "<DONE_OPTION_ID>"
-```
+When a board update is needed, send a message to the `product-owner` agent specifying:
+- The item title or ID to update.
+- The target column (`In progress`, `In review`, `Blocked`, or `Done`).
+- Any relevant context (e.g. blocking reason, linked PR/issue URL).
 
 ---
 
@@ -109,8 +57,7 @@ At the start of the orchestration:
    - The task list / checklist if present in the specification.
    - Any reference architecture, constraints, or repository laws (e.g. `constitution.md`).
 4. **GitHub Project Sync (if project configured)**:
-   - Discover field IDs and status options using `gh project field-list`.
-   - Ensure all spec tasks exist on the project backlog board in `Backlog` status.
+   - Delegate to the `product-owner` agent to ensure all spec tasks exist on the project backlog board in `Backlog` status.
 
 ### 2. Agent Selection Matrix
 Select the appropriate developer and reviewer agents.
@@ -126,7 +73,7 @@ Select the appropriate developer and reviewer agents.
 ### 3. Execution & Delegation Loop
 For each task or requirement set identified in the spec:
 1. **Board Update (In Progress)**:
-   - If GitHub Project is linked, move the task to `In progress`.
+   - Notify the `product-owner` agent to move the task to `In progress`.
 2. **Delegate to Developer Agent**:
    - Invoke the chosen developer agent using `invoke_subagent` (setting `Workspace` to `share` or `branch` to isolate workspace context).
    - In the prompt, provide:
@@ -135,7 +82,7 @@ For each task or requirement set identified in the spec:
      - An instruction to return a clear, token-efficient **Handoff Report** summarizing the changes made, tests run, and/or Pull Request links created (raw bullet points, no fluff).
    - Wait for the developer agent to finish and retrieve their handoff report.
 3. **Board Update (In Review)**:
-   - If GitHub Project is linked, move the task to `In review`.
+   - Notify the `product-owner` agent to move the task to `In review`.
 4. **Delegate to Reviewer Agent**:
    - Invoke the reviewer agent using `invoke_subagent`.
    - In the prompt, provide:
@@ -147,24 +94,22 @@ For each task or requirement set identified in the spec:
 5. **Evaluate Feedback & Cycle**:
    - Check the reviewer's feedback for any **Required Improvements**:
      - **If Required Improvements are listed (Code is NOT OK)**:
-       - Move task status back to `In progress` (or `Blocked` if blocked by external issue).
+       - Notify the `product-owner` agent to move task status back to `In progress` (or `Blocked` if blocked by external issue).
        - Prepare a revision instruction containing ONLY the specific feedback points.
        - Send this instruction to the developer agent, requesting a fix.
        - Wait for the developer agent to implement fixes and return a new handoff report.
        - Repeat the review phase (Step 3.4).
      - **If NO Required Improvements are listed / reviewer approves (Code is OK)**:
-       - Move task on GitHub Project to `Done`.
-       - If backed by an issue, close the issue if appropriate (`gh issue close`).
+       - Notify the `product-owner` agent to move the task to `Done` and close the linked issue if applicable.
        - Mark the task/requirement as fully completed locally (`scripts/orchestrate.py update <task_id> done`).
        - Proceed to the next task, or to the Finalization phase.
 
 ### 4. Finalization & Completion Phase
 Once all tasks in the specification are completed and approved:
-1. Verify all board cards are in `Done` column.
+1. Request a board status report from the `product-owner` agent to confirm all cards are in `Done`.
 2. Compile a master report summarizing:
    - The tasks executed and approved.
    - Number of iteration loops run for each task.
    - Pull request(s) or commits containing the changes.
-   - GitHub project board status link.
 3. Output a summary to the user and mark the orchestration task as complete.
 
