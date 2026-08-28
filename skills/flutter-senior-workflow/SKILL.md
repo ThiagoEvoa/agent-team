@@ -21,7 +21,6 @@ Use this skill to guide the implementation process for Flutter applications. It 
 
 ### 1. Workspace Verification & Initialization
 - **Issue Ingestion:** Retrieve task requirements by checking active issues using GitHub MCP `github_get_issue` or GitHub CLI `gh issue view <issue-number>`.
-- **Branch Synchronization:** Before making any code changes, check out the main repository branch (`main` or `master`), pull the latest remote changes (`git pull`), and create a new feature branch (e.g., `git checkout -b feat/feature-name`) from the updated branch to avoid conflicts.
 - **Existing Projects:** Analyze the project structure. Check if it uses the workspaces architecture (e.g., `resolution: workspace` in the root `pubspec.yaml`). If it does, use the workspaces guidelines in `project_template.md`. Otherwise, use the existing architecture, directory structure, and patterns adopted by the project.
 - **New Projects:** You MUST ALWAYS use the workspaces architecture and follow the guidelines and templates in `project_template.md`.
 - Command reference: `fws create`.
@@ -48,17 +47,23 @@ When performing code changes:
 - **Discovery:** Use `mcp_dart_resolve_workspace_symbol` to find definitions. Use `mcp_dart_hover` or `mcp_dart_signature_help` to understand unknown APIs before implementing.
 - **Quality:** Run `mcp_dart_analyze_files`, `mcp_dart_dart_format`, and `mcp_dart_dart_fix`.
 
-### 3. Execution Phase
-1. **Plan:** Analyze the project structure to determine target architecture. Outline changes based on either `project_template.md` (for workspaces) or the project's existing templates/patterns (for non-workspaces). **IF UNCERTAIN: Research, do not guess.**
-2. **Implement:** Write code adhering to the determined architecture (either workspaces as per `project_template.md` or the existing project's structure).
-3. **Analyze:** Run `mcp_dart_analyze_files`.
-4. **Test:** Run `mcp_dart_run_tests` ensuring 100% behavior coverage.
-5. **Format:** Run `mcp_dart_dart_format`.
-6. **Publish to GitHub:**
-   - Ensure you are on your local feature branch (which was synchronized and created at the start).
+### 3. Execution Phase (Seam-Based TDD)
+1. **Plan & Identify Seam:** Analyze project requirements and determine the highest-level clean seam (ViewModel, Repository, or Feature Controller). Review `CONTEXT.md` for domain invariants.
+2. **Write Failing Test (Red):** Write behavioral tests against the seam interface before writing the implementation (`flutter test test/feature_test.dart`). Watch it fail.
+3. **Implement (Green):** Write minimal, deep implementation code behind the seam to satisfy the tests.
+4. **Fast Loop Verification:** Run `mcp_dart_analyze_files` and targeted single test files regularly during development.
+5. **Full Suite Verification:** Run `scripts/project_lifecycle.py verify` (or `mcp_dart_run_tests`) once at completion to ensure 100% test pass rate and zero analyzer warnings.
+6. **Format:** Run `mcp_dart_dart_format`.
+7. **Publish to GitHub:**
+   - Ensure you are on your synchronized local feature branch.
    - Stage and commit changes with a descriptive conventional commit message.
-   - Push the branch and ALWAYS create a brand new Pull Request on GitHub using `github_create_pull_request` (MCP) or `gh pr create` (CLI), strictly following `templates/pr_standards.md`. DO NOT reuse, push to, or update an existing Pull Request.
+   - Push the branch and create a Pull Request on GitHub using `github_create_pull_request` (MCP) or `gh pr create` (CLI), strictly following `templates/pr_standards.md`.
 
-### 4. Handoff
-Ensure that by the end of the task, you synthesize what was completed, what new symbols were introduced, the URL of the opened Pull Request, and any remaining open issues, so the next agent can proceed smoothly.
+### 4. Handoff & Review Trigger
+Synthesize a concise, token-efficient **Handoff Report**:
+- List of modified/created files and symbols.
+- Test command and proof of pass at the seam.
+- Link to the Pull Request or branch diff.
+- Trigger handoff to `dart-senior-reviewer` for Two-Axis Review (`📋 Standards` vs `🎯 Spec`).
+
 

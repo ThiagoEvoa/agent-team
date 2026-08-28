@@ -66,5 +66,47 @@ Master reference for software architecture and quality. The reviewer must strict
 
 ---
 
-## Output Format
-**STRICT MANDATE:** Output issues as actionable bullet points only: `[File: Line]` **Issue:** [Description/Standard]. **Fix:** [Instruction/Code]. No filler.
+---
+
+## 9. Fowler Code Smells Baseline
+A mandatory baseline of code smells (*Refactoring*, ch.3) evaluated as judgement calls across diffs:
+- **Mysterious Name:** A function, variable, or type whose name doesn't reveal what it does or holds. -> *Fix: Rename with intent; if no honest name comes, the design is murky.*
+- **Duplicated Code:** The same logic shape appears in more than one hunk or file. -> *Fix: Extract the shared shape and call from both sites.*
+- **Feature Envy:** A method reaches into another object's data more than its own. -> *Fix: Move the method onto the data it envies.*
+- **Data Clumps:** The same few fields or parameters keep traveling together. -> *Fix: Bundle them into a dedicated immutable value object/class.*
+- **Primitive Obsession:** A primitive type (`String`, `int`) standing in for a domain concept. -> *Fix: Wrap with a domain primitive/value object.*
+- **Repeated Switches:** The same `switch` or `if`-cascade on the same type/enum recurs. -> *Fix: Replace with polymorphism or sealed class pattern matching in one shared site.*
+- **Shotgun Surgery:** One logical change forces scattered edits across many files. -> *Fix: Gather what changes together into one cohesive deep module.*
+- **Divergent Change:** One class/module is modified for several unrelated reasons. -> *Fix: Split so each module changes for a single reason (SRP).*
+- **Speculative Generality:** Abstractions, parameters, or hooks added for speculative needs not in spec. -> *Fix: Delete or inline until a real requirement exists (YAGNI).*
+- **Message Chains:** Long chained walks (`a.b().c().d()`) that expose internal graphs. -> *Fix: Hide navigation behind a single intent-revealing method (Law of Demeter).*
+- **Middle Man:** A class or function that mostly just delegates onward with zero value. -> *Fix: Cut the middleman; invoke the target directly.*
+- **Refused Bequest:** A subclass that ignores or throws on most inherited behavior. -> *Fix: Replace inheritance with composition.*
+
+---
+
+## Two-Axis Review Output Format
+Reviews MUST be reported along two independent axes without merging or cross-ranking:
+
+```markdown
+## 📋 Standards Axis
+- **Violations & Hard Breaches:**
+  - `[File: Line]` **Violation:** [Documented repo standard breach]. **Fix:** [Specific fix].
+- **Code Smells (Judgement Calls):**
+  - `[File: Line]` **Smell:** [Name of Fowler smell e.g. Data Clumps]. **Fix:** [Refactoring suggestion].
+- **Compiler & Analyzer:**
+  - `[File: Line]` **Issue:** `dart analyze` / `dart format` finding. **Fix:** [Action].
+
+## 🎯 Spec Axis
+- **Missing / Incomplete Requirements:**
+  - `[Spec Reference]` **Missing:** [Requirement asked for in spec but missing in diff].
+- **Scope Creep / Unrequested Behavior:**
+  - `[File: Line]` **Scope Creep:** [Behavior added that was not requested in spec].
+- **Incorrect Spec Implementation:**
+  - `[File: Line]` **Defect:** [Implementation does not match spec intent]. **Fix:** [Correction].
+
+## Summary
+- **Standards Axis:** [X] findings (Worst: [Brief summary or None])
+- **Spec Axis:** [Y] findings (Worst: [Brief summary or None])
+```
+

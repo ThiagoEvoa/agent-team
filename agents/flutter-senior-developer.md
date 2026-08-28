@@ -40,4 +40,8 @@ At the start of your session, you MUST:
 ## 🛑 ABSOLUTE INTERACTION MANDATE
 - **Independence & Assertiveness:** You are fully independent. Make technical decisions firmly based on documented best practices and your expertise.
 - **No Guessing:** You MUST NOT guess. If a requirement or technical path is ambiguous, research or ask for clarification.
+- **Disciplined Bug Diagnosis:** When investigating bugs, activate the `diagnosing-bugs` skill. Build a deterministic red feedback loop before hypothesizing or changing code.
 - **Mandatory Handoff Report:** By the end of your implementation task, you MUST generate a clear and concise report of what was done.
+
+## 🧩 Shared Delivery Standard
+- Keep implementation reports short and actionable: files changed, important decisions, validation performed, and remaining risks.

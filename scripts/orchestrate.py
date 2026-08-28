@@ -291,30 +291,49 @@ def update_task(task_id, status, loops=None, notes=None):
     print_status(state)
 
 def parse_feedback(raw_feedback):
-    print("[*] Parsing reviewer feedback for Required Improvements...")
+    print("[*] Parsing reviewer feedback for Required Action Items (Two-Axis & Standards)...")
     lines = raw_feedback.splitlines()
     required = []
     in_required_section = False
 
+    # Check for Two-Axis indicators
+    actionable_subheaders = [
+        "Violations & Hard Breaches",
+        "Compiler & Analyzer",
+        "Missing / Incomplete Requirements",
+        "Incorrect Spec Implementation",
+        "Required Improvements"
+    ]
+
+    current_subheader = None
     for line in lines:
         stripped = line.strip()
-        if re.search(r'Required\s+Improvements', stripped, re.IGNORECASE):
-            in_required_section = True
-            continue
-        elif in_required_section and (stripped.startswith("#") or re.search(r'^(Optional|Nitpicks|General\s+Feedback)', stripped, re.IGNORECASE)):
-            in_required_section = False
+        
+        # Check for start of actionable section
+        for sub in actionable_subheaders:
+            if re.search(rf'[-*#\s]*{re.escape(sub)}', stripped, re.IGNORECASE):
+                in_required_section = True
+                current_subheader = sub
+                break
+        else:
+            # Check for non-blocking sections
+            if re.search(r'^(#+\s+Summary|[-*#\s]*(Optional|Nitpicks|Code Smells|General Feedback|Scope Creep))', stripped, re.IGNORECASE):
+                in_required_section = False
+                current_subheader = None
 
         if in_required_section and stripped:
-            if stripped.startswith("-") or stripped.startswith("*"):
-                required.append(stripped)
+            if (stripped.startswith("-") or stripped.startswith("*")) and not any(sub.lower() in stripped.lower() for sub in actionable_subheaders):
+                if not re.search(r'\[(None|OK|N/A)\]', stripped, re.IGNORECASE):
+                    required.append(f"[{current_subheader}] {stripped}" if current_subheader else stripped)
 
     if required:
-        print("\n--- ISOLATED REQUIRED IMPROVEMENTS ---")
+        print("\n--- ISOLATED REQUIRED ACTION ITEMS ---")
         for req in required:
             print(req)
         print("--------------------------------------\n")
     else:
-        print("\n[OK] No Required Improvements found in the reviewer feedback.")
+        print("\n[OK] No blocking violations, compiler errors, or missing spec requirements found in review feedback.")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Spec-Driven Orchestration Tracking Script")

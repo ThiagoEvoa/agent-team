@@ -16,6 +16,8 @@ parameters:
   repo:
     type: string
     description: Optional GitHub repository (e.g. "owner/repo") for creating linked issues.
+resources:
+  - skills/to-spec/SKILL.md
 ---
 
 # Product Owner Workflow Skill
@@ -90,11 +92,22 @@ gh project item-edit --id "<ITEM_ID>" --project-id "<PROJECT_ID>" --field-id "<S
 ### 1. Ingestion Phase
 When a `spec_path` is provided:
 1. Read the spec file using `read_file`.
-2. Extract:
+2. **Validate the Spec** before creating any backlog items. A spec is ready to ingest only if it contains ALL of:
+   - At least one numbered **User Story** (`As an <actor>, I want <capability>, so that <benefit>`).
+   - An **Implementation Decisions** section (modules, interfaces, or contracts).
+   - A **Testing Decisions** section with an explicit test seam.
+   - An **Out of Scope** section.
+   If any of these sections are missing or empty:
+   - Do **not** create backlog items yet.
+   - Notify the `spec-specialist` agent to complete the spec using the `to-spec` workflow.
+   - Set the spec's issue (if it exists) to `Blocked` with a note: `"Spec incomplete — missing: [list missing sections]"`.
+   - Resume ingestion only after `spec-specialist` confirms the spec is complete and marked `ready-for-agent`.
+3. Extract:
    - The task list / checklist items.
    - Descriptions, dependencies, and acceptance criteria per task.
-3. Discover field IDs and status options using `gh project field-list`.
-4. Create each task on the project board with status `Backlog`.
+4. Discover field IDs and status options using `gh project field-list`.
+5. Create each task on the project board with status `Backlog`.
+
 
 ### 2. Backlog Grooming
 Review all items in `Backlog`:

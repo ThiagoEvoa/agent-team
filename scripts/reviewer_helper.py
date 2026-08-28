@@ -72,11 +72,16 @@ def build_pr_diff(pr_number):
         return None
     return out
 
-def get_git_diff(only_staged=False):
-    cmd = "git diff --cached" if only_staged else "git diff HEAD"
+def get_git_diff(only_staged=False, fixed_point=None):
+    if fixed_point:
+        cmd = f"git diff {fixed_point}...HEAD"
+    elif only_staged:
+        cmd = "git diff --cached"
+    else:
+        cmd = "git diff HEAD"
     code, out, err = run_cmd(cmd)
     if code != 0:
-        print(f"[ERROR] Failed to fetch git diff: {err}")
+        print(f"[ERROR] Failed to fetch git diff ({cmd}): {err}")
         return None
     return out
 
@@ -91,16 +96,18 @@ def run_local_audit():
     return parse_dart_analyze_output(out)
 
 def main():
-    parser = argparse.ArgumentParser(description="Dart Senior Architect Reviewer Helper Script")
+    parser = argparse.ArgumentParser(description="Dart Senior Architect Two-Axis Reviewer Helper Script")
+    parser.add_argument("--fixed-point", help="Git reference to compare against (e.g. origin/main, main, HEAD~3)")
     parser.add_argument("--only-staged", action="store_true", help="Only review staged changes")
     parser.add_argument("--pr", type=int, help="Fetch changes from target GitHub PR number")
+    parser.add_argument("--spec", help="Path to specification file (e.g. spec.md or issue number)")
     args = parser.parse_args()
 
     # 1. Fetch diff content
     if args.pr:
         diff_content = build_pr_diff(args.pr)
     else:
-        diff_content = get_git_diff(args.only_staged)
+        diff_content = get_git_diff(args.only_staged, args.fixed_point)
 
     if not diff_content:
         print("[!] No git diff or changes detected.")
@@ -121,32 +128,46 @@ def main():
     for issue in analyzer_issues:
         filepath = issue["file"]
         line_no = issue["line"]
-        # Normalize file path comparison
         normalized_file = os.path.relpath(filepath) if os.path.isabs(filepath) else filepath
         
-        # Check matches
         for changed_file, changed_lines in changes.items():
             if normalized_file in changed_file or changed_file in normalized_file:
                 if line_no in changed_lines:
                     matched_issues.append(issue)
 
-    # 5. Output pre-filled review template
-    print("\n" + "="*50)
-    print("                DRAFT REVIEW REPORT")
-    print("="*50)
-    print("\n- **Required Improvements:**")
+    # 5. Output Two-Axis Review Template
+    print("\n" + "="*60)
+    print("           DRAFT TWO-AXIS REVIEW REPORT")
+    print("="*60)
+    print("\n## 📋 Standards Axis")
+    print("- **Violations & Hard Breaches:**")
+    print("  - `[File: Line]` **Violation:** [Documented repo standard violation]. **Fix:** [Specific fix].")
     
+    print("- **Code Smells (Judgement Calls):**")
+    print("  - `[File: Line]` **Smell:** [Check for: Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest]. **Fix:** [Refactoring].")
+    
+    print("- **Compiler & Analyzer:**")
     if matched_issues:
         for issue in matched_issues:
-            print(f"  - `[File: {issue['file']}:{issue['line']}]` **Issue:** Compiler {issue['severity']}: {issue['message']} (`{issue['code']}`). **Fix:** Resolve this compiler warning/error.")
+            print(f"  - `[File: {issue['file']}:{issue['line']}]` **Issue:** Compiler {issue['severity']}: {issue['message']} (`{issue['code']}`). **Fix:** Resolve this compiler issue.")
     else:
-        print("  - `[None]` **Issue:** No compiler errors or warnings found on modified lines. **Fix:** N/A.")
-        
-    print("\n- **Optional / Nitpicks:**")
-    print("  - `[File: Line]` **Issue:** [Enter design nitpick, stylistic improvement, or optimization suggestion here]. **Fix:** [Describe the suggested change].")
-    print("\n- **General Feedback (if any):**")
-    print("  - **Issue:** [Enter high-level architecture feedback, testing gaps, or security posture observations]. **Recommendation:** [Describe recommendation].")
-    print("="*50 + "\n")
+        print("  - `[None]` **Issue:** No compiler errors or warnings on modified lines.")
+
+    print("\n## 🎯 Spec Axis")
+    if args.spec:
+        print(f"- *Target Spec / Issue:* `{args.spec}`")
+    print("- **Missing / Incomplete Requirements:**")
+    print("  - `[Spec Reference]` **Missing:** [Requirement asked for in spec but missing in diff].")
+    print("- **Scope Creep / Unrequested Behavior:**")
+    print("  - `[File: Line]` **Scope Creep:** [Behavior added that was not in spec].")
+    print("- **Incorrect Spec Implementation:**")
+    print("  - `[File: Line]` **Defect:** [Implementation deviates from spec]. **Fix:** [Correction].")
+
+    print("\n## Summary")
+    print(f"- **Standards Axis:** {len(matched_issues)} compiler findings + [X] smells (Worst: ...)")
+    print("- **Spec Axis:** [Y] findings (Worst: ...)")
+    print("="*60 + "\n")
 
 if __name__ == "__main__":
     main()
+

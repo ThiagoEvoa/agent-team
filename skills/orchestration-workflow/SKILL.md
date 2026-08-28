@@ -32,6 +32,8 @@ To keep token usage minimal and context windows clean:
 - **Feedback Stripping**: When cycling back to the developer agent with reviewer feedback, pass ONLY the specific "Required Improvements" bullet points. Strip out conversational text, nitpicks, and general feedback.
 - **Targeted Operations**: Instruct subagents to read only specific files and use the helper script `scripts/extract_section.py` to extract precise sections from standard/template files (or use `view_file` with `StartLine`/`EndLine` for specific code files) instead of dumping full file contents or repeating wide directory scans.
 - **No Conversational Overhead**: All reports (Handoff, Review, Orchestrator progress) must be formatted as raw bullet points, avoiding pleasantries or verbose explanations.
+- **Shared Delivery Standard**: All delegated developer, reviewer, and architect work must end with a concise handoff or review report that names changed files, key decisions, validation performed, and any follow-up risks.
+- **Workspace Safety**: Do not instruct agents to switch branches, create branches, pull, stash, reset, or otherwise mutate git state unless the user explicitly asked for that workflow.
 
 ---
 
@@ -69,6 +71,12 @@ Select the appropriate developer and reviewer agents.
 - **Reviewer Agent Selection** (unless overridden by `reviewer_agent` parameter):
   - **Dart/Flutter/Dart Frog**: Use `dart-senior-reviewer` agent.
   - **Default**: Use a peer developer agent or prompt the user for guidance.
+- **Architectural Audit** (triggered on demand or by reviewer escalation):
+  - Use `senior-architect` when:
+    - The `dart-senior-reviewer` raises an **`⚠️ Architectural Escalation Recommended`** flag.
+    - A task has accumulated > 2 review cycles with recurring structural Fowler smells.
+    - The spec explicitly requires a module redesign or seam migration.
+
 
 ### 3. Execution & Delegation Loop
 For each task or requirement set identified in the spec:
@@ -88,21 +96,21 @@ For each task or requirement set identified in the spec:
    - In the prompt, provide:
      - The target task/spec requirements.
      - The **Handoff Report** from the developer agent.
-     - Instructions to review the code changes against the specs and project standards (e.g., `templates/review_standards.md` if available).
-     - An instruction to format feedback strictly using the **Review Report Format** (Required Improvements vs. Optional/Nitpicks vs. General Feedback).
+     - Instructions to review the code changes using the **Two-Axis Review** format (`📋 Standards` + 12 Fowler Code Smells vs `🎯 Spec Compliance`).
    - Wait for the reviewer agent to return their feedback.
 5. **Evaluate Feedback & Cycle**:
-   - Check the reviewer's feedback for any **Required Improvements**:
-     - **If Required Improvements are listed (Code is NOT OK)**:
+   - Parse reviewer feedback using `scripts/orchestrate.py parse-feedback --raw "..."` to isolate actionable items (violations, compiler issues, missing spec items, incorrect implementations):
+     - **If Action Items are present (Code is NOT OK)**:
        - Notify the `product-owner` agent to move task status back to `In progress` (or `Blocked` if blocked by external issue).
-       - Prepare a revision instruction containing ONLY the specific feedback points.
+       - Prepare a revision instruction containing ONLY the isolated action items.
        - Send this instruction to the developer agent, requesting a fix.
        - Wait for the developer agent to implement fixes and return a new handoff report.
        - Repeat the review phase (Step 3.4).
-     - **If NO Required Improvements are listed / reviewer approves (Code is OK)**:
+     - **If NO Action Items are present / reviewer approves (Code is OK)**:
        - Notify the `product-owner` agent to move the task to `Done` and close the linked issue if applicable.
        - Mark the task/requirement as fully completed locally (`scripts/orchestrate.py update <task_id> done`).
        - Proceed to the next task, or to the Finalization phase.
+
 
 ### 4. Finalization & Completion Phase
 Once all tasks in the specification are completed and approved:
@@ -111,5 +119,5 @@ Once all tasks in the specification are completed and approved:
    - The tasks executed and approved.
    - Number of iteration loops run for each task.
    - Pull request(s) or commits containing the changes.
-3. Output a summary to the user and mark the orchestration task as complete.
-
+3. **Architectural Retrospective (Optional):** If any task accumulated **> 2 review cycles** or received an `⚠️ Architectural Escalation Recommended` flag from the reviewer, invoke `senior-architect` with a summary of the affected modules for a post-sprint deep-module audit and HTML report.
+4. Output a summary to the user and mark the orchestration task as complete.

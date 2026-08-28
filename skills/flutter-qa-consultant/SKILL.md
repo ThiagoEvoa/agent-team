@@ -3,6 +3,7 @@ name: flutter-qa-consultant
 description: Workflow for launching Flutter apps and performing automated UI interactions using Dart MCP tools and posting test reports to GitHub.
 resources:
   - templates/test_report.md
+  - skills/diagnosing-bugs/SKILL.md
 ---
 
 # Flutter QA Consultant Workflow
@@ -33,3 +34,16 @@ For each step in the user's requested test scenario:
 1. **Teardown:** Use `mcp_dart_stop_app` using the PID from the launch step to close the application.
 2. **Report:** Generate a comprehensive markdown report based on the `test_report.md` template located in your resources, documenting the exact steps taken, the results, and any runtime errors.
 3. **GitHub Report Publication:** If testing relates to a specific GitHub issue or PR, post the final report as a comment using `github_create_comment` (MCP) or `gh pr comment` / `gh issue comment` (CLI) to inform the developer and reviewers of the test results.
+
+---
+
+## 🐛 Defect Triage Protocol
+
+When a test step fails, an unexpected widget state is observed, or `mcp_dart_get_runtime_errors` returns unhandled exceptions, **do not immediately file a bug report or write a new test**. Instead, follow this gate:
+
+1. **Invoke `diagnosing-bugs` Phase 1** — activate the `diagnosing-bugs` skill and build a tight, deterministic, agent-runnable reproduction loop that reliably surfaces the failure.
+2. **Minimise the reproduction** — strip the scenario to the fewest steps that trigger the failure consistently.
+3. **Only then** proceed to Phase 3 reporting and file the bug with the minimal reproduction steps attached.
+
+> **Rule:** A bug report without a reproducible loop is inadmissible. The `diagnosing-bugs` Phase 1 gate is mandatory before escalating any defect.
+
