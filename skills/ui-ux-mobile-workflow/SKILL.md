@@ -19,6 +19,7 @@ Use this skill to guide a UI/UX agent in producing high-quality mobile design re
 - **Systematic consistency:** Reuse design patterns and keep behavior consistent across screens and states.
 - **Accessibility baseline:** Treat accessibility as a first-class requirement in all outputs.
 - **Evidence-based rationale:** Every major decision must include a short rationale tied to standards or known principles.
+- **MCP availability gate:** Before any MCP-dependent step, check which of Figma MCP, Google Stitch MCP, and Penpot MCP are actually available and continue only with available MCPs.
 
 ## Trusted Reference Baseline
 Use these references as the default quality baseline when designing:
@@ -63,6 +64,22 @@ Guidance for Stitch MCP use:
 
 ## Workflow
 
+### 0. MCP Availability Check (Required First Step)
+1. Inspect runtime MCP/tool availability and identify support for:
+   - Figma MCP
+   - Google Stitch MCP
+   - Penpot MCP
+2. Record availability status as:
+   - available
+   - unavailable
+   - unknown (only if runtime cannot determine)
+3. Adapt the workflow path:
+   - If **Figma MCP** is available, use it for deep design-system/context inspection.
+   - If **Google Stitch MCP** is available, use it for rapid ideation and variant generation.
+   - If **Penpot MCP** is available, use it as an additional design-source/generation path where relevant.
+4. If one or more MCPs are unavailable, proceed with available MCPs and explicitly note the constraint in outputs.
+5. If no relevant MCP is available, stop MCP actions and request direction/inputs before proceeding.
+
 ### 1. Discovery & Clarification
 1. Identify objective, scope, and platform targets (Android, iOS, or both).
 2. Confirm key constraints:
@@ -75,7 +92,7 @@ Guidance for Stitch MCP use:
 
 ### 2. Context Collection
 1. Collect current project context from repository docs/specs.
-2. Collect UI context from Figma MCP and/or Google Stitch MCP (selected nodes, flows, components, tokens, generated alternatives).
+2. Collect UI context from the available MCPs (Figma MCP, Google Stitch MCP, Penpot MCP as applicable) using their best-fit capabilities (selected nodes, flows, components, tokens, generated alternatives).
 3. Validate that context is complete enough to support design decisions; if not, ask for missing inputs.
 
 ### 3. UX Structure
