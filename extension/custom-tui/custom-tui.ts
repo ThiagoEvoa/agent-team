@@ -251,10 +251,8 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 	// Register header and footer on session_start
 	pi.on("session_start", async (_event, ctx) => {
 		discovered = loadAgents();
-		const detected = detectActiveAgent(ctx.getSystemPrompt());
-		if (detected !== "None" && (!(global as any).activeAgentName || (global as any).activeAgentName === "None")) {
-			(global as any).activeAgentName = detected;
-		}
+		// Don't auto-detect agent on startup - only on prompt
+		(global as any).activeAgentName = "None";
 
 		if (ctx.hasUI) {
 			// Customize Header
@@ -615,17 +613,22 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 	// Register /clear slash command to visually clear the chat history Container
 	pi.registerCommand("clear", {
 		description: "Clear screen output visually (keeps conversation context)",
-		handler: async (args, ctx) => {
-			if (activeTui) {
-				const chatContainer = activeTui.children[1];
-				if (chatContainer && typeof chatContainer.clear === "function") {
-					chatContainer.clear();
-					activeTui.requestRender();
-				} else {
-					ctx.ui.notify("❌ Failed to clear output: chat container not found", "error");
-				}
-			} else {
+		handler: async (_args, ctx) => {
+			if (!activeTui) {
 				ctx.ui.notify("❌ Failed to clear output: TUI not active", "error");
+				return;
+			}
+
+			// TUI children: [documentContainer, pendingMessages, status, widgetAbove, editor, ...]
+			// documentContainer children: [headerContainer, loadedResourcesContainer, chatContainer]
+			const documentContainer = activeTui.children?.[0];
+			const chatContainer = documentContainer?.children?.[2];
+
+			if (chatContainer && typeof chatContainer.clear === "function") {
+				chatContainer.clear();
+				activeTui.requestRender?.(true);
+			} else {
+				ctx.ui.notify("❌ Failed to clear output: chat container not found", "error");
 			}
 		}
 	});

@@ -1,0 +1,17 @@
+{
+  "lastChangelogVersion": "0.84.4",
+  "packages": [
+    "npm:pi-web-access",
+    "npm:pi-mcp-adapter"
+  ],
+  "compaction": {
+    "enabled": true,
+    "reservedTokens": 2048,
+    "keepRecentTokens": 6000
+  },
+  "theme": "dark",
+  "defaultProvider": "ollama",
+  "defaultModel": "qwen3.8:27b-mlx",
+  "defaultThinkingLevel": "medium",
+  "enableInstallTelemetry": false
+}

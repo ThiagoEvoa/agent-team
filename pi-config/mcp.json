@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "dart-mcp-server": {
+      "command": "dart",
+      "args": [
+        "mcp-server"
+      ],
+      "env": {}
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "TOKEN"
+      }
+	  }
+  }
+}

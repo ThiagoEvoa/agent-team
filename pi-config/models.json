@@ -1,0 +1,116 @@
+{
+  "lastChangelogVersion": "0.75.4",
+  "packages": [
+    "npm:pi-web-access"
+  ],
+  "providers": {
+    "ollama": {
+      "baseUrl": "http://192.168.1.238:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "think": false,
+      "models": [
+        {
+          "id": "qwen3.6:35b-mlx",
+          "reasoning": true,
+          "contextWindow": 16384,
+          "maxTokens": 8192,
+          "samplingParams": {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "top_k": 20,
+            "min_p": 0.0,
+            "presence_penalty": 0.0,
+            "repetition_penalty": 1.0
+          },
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true,
+            "thinkingFormat": "reasoning_effort"
+          },
+          "thinkingLevelMap": {
+            "off": "none",
+            "minimal": "low",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "xhigh",
+            "max": "max"
+          }
+        },
+        {
+          "id": "qwen3.8:27b-mlx",
+          "reasoning": true,
+          "contextWindow": 16384,
+          "maxTokens": 8192,
+          "samplingParams": {
+            "temperature": 0.6,
+            "top_p": 0.95,
+            "top_k": 20,
+            "min_p": 0.0,
+            "presence_penalty": 0.0,
+            "repetition_penalty": 1.0
+          },
+          "compat": {
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true,
+            "thinkingFormat": "reasoning_effort"
+          },
+          "thinkingLevelMap": {
+            "off": "none",
+            "minimal": "low",
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": "xhigh",
+            "max": "max"
+          }
+        }
+      ]
+    },
+    "9router": {
+      "baseUrl": "https://api.router9.com/v1",
+      "api": "openai-completions",
+      "apiKey": "TOKEN",
+      "models": [
+        {
+          "id": "minimax/minimax-m3",
+          "name": "Minimax M3 Free (Router9)",
+          "contextWindow": 128000,
+          "maxTokens": 4096
+        }
+      ]
+    },
+    "open-router": {
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "api": "openai-completions",
+      "apiKey": "TOKEN",
+      "models": [
+        {
+          "id": "z-ai/glm-5.2:free",
+          "name": "GLM 5.2 Free (OpenRouter)",
+          "contextWindow": 128000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "minimax/minimax-m3:free",
+          "name": "Minimax M3 Free (OpenRouter)",
+          "contextWindow": 128000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "google/gemma-4-31b-it:free",
+          "name": "Gemma 4 31B IT Free (OpenRouter)",
+          "contextWindow": 128000,
+          "maxTokens": 4096
+        },
+        {
+          "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+          "name": "NemoTron 3 Ultra 550B A55B Free (OpenRouter)",
+          "contextWindow": 128000,
+          "maxTokens": 4096
+        }
+      ]
+    }
+  }
+}

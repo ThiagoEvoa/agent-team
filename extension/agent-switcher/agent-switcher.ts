@@ -64,11 +64,15 @@ async function listAgents(): Promise<AgentMeta[]> {
 }
 
 export default function (pi: ExtensionAPI) {
+  let isFirstLoad = true;
+
   // Notify on extension load
   pi.on("session_start", async (_event, ctx) => {
     ctx.ui.notify("Agent Switcher loaded. Use `/agent` to switch agents.", "info");
     currentAgent = null;
     (global as any).activeAgentName = "None";
+    ctx.ui.setStatus("agent", "None");
+    isFirstLoad = false;
   });
 
   // Register /agent command
