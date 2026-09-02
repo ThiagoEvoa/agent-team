@@ -74,8 +74,6 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 - `custom-tui/custom-tui.ts`: Terminal UI improvements and status formatting.
 - `agent-switcher/agent-switcher.ts`: Interactive agent selector and prompt switching.
 - `subagent-spawner/subagent-spawner.ts`: Isolated subagent delegation and execution management.
-- `agent-dashboard/agent-dashboard.ts`: Agent status visualization and tracking.
-- `agent-team/agent-team.ts`: Team-level orchestration commands.
 
 ### 5. Pi Config (`pi-config/`)
 Default environment configurations:
