@@ -15,6 +15,7 @@ This folder contains the agent personas used by the Copilot CLI workspace.
 | `spec-specialist` | Turns rough ideas into structured specs | Discovery, user stories, and implementation planning |
 | `product-owner` | Manages backlog and project board state | GitHub Projects and lifecycle tracking |
 | `flutter-senior-developer` | Implements Flutter features and fixes | Flutter app code changes |
+| `web-senior-developer` | Implements Astro and Next.js web features | Public websites and interactive products |
 | `dartfrog-senior-developer` | Implements Dart Frog backend work | APIs, routes, middleware, backend logic |
 | `dart-senior-reviewer` | Reviews code with standards/spec checks | PR review and code quality audits |
 | `senior-architect` | Reviews system structure and refactor direction | Architecture, module design, ADRs |

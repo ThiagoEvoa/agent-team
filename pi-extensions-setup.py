@@ -24,6 +24,7 @@ EXTENSIONS_MAPPING = {
     "extension/custom-tui/custom-tui.ts": "custom-tui.ts",
     "extension/agent-switcher/agent-switcher.ts": "agent-switcher.ts",
     "extension/subagent-spawner/subagent-spawner.ts": "subagent-spawner.ts",
+    "extension/notes-extension/notes-extension.ts": "notes-extension.ts",
 }
 
 DEFAULT_PI_DIR = Path.home() / ".pi" / "agent" / "extensions"

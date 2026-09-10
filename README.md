@@ -74,8 +74,19 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 - `custom-tui/custom-tui.ts`: Terminal UI improvements and status formatting.
 - `agent-switcher/agent-switcher.ts`: Interactive agent selector and prompt switching.
 - `subagent-spawner/subagent-spawner.ts`: Isolated subagent delegation and execution management.
-- `agent-dashboard/agent-dashboard.ts`: Agent status visualization and tracking.
-- `agent-team/agent-team.ts`: Team-level orchestration commands.
+- `notes-extension/notes-extension.ts`: Durable session-note synthesis, semantic note search, and note reading.
+
+#### Notes Extension
+
+`notes-extension.ts` stores compact durable lessons under `agent/notes/` in each project:
+
+- `/takenote`: Synthesize and save smallest durable lesson from current session.
+- `search_notes`: Search note descriptions/content before loading full notes.
+- `read_note`: Read note content and related-note links by ID.
+- `/takenote --dry-run`: Preview synthesis without writing.
+- `/takenote --force-new`: Skip duplicate detection.
+- `/takenote --update <id>`: Update existing note by ID.
+- `/takenote --related <id1,id2>`: Override related-note links.
 
 ### 5. Pi Config (`pi-config/`)
 Default environment configurations:
