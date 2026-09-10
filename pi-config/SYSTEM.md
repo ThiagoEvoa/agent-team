@@ -111,7 +111,7 @@ Load specialized agents based on task keywords:
 
 ### Product Owner Agent
 **Load:** `/Users/thiagoevoa/.agents/agents/product-owner.md`
-**Triggers:** "product owner", "board management", "backlog", "github project", "prioritize", "card", "task management"
+**Triggers:** "product owner", "board management", "manage backlog", "github project", "prioritize", "github project card", "manage project tasks"
 **Purpose:** Product owner and GitHub Project board management. Manages backlogs and lifecycle transitions.
 
 ### UI/UX Designer Agent
