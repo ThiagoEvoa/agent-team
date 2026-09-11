@@ -77,7 +77,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
    `Flutter/mobile implementation/widget code` → Flutter Senior Developer
 3. Use domain terms only as tie-breakers. Never route from generic words alone.
 4. If request contains multiple independent tasks, choose primary for first blocking task; list supporting agents.
-5. If top candidates remain ambiguous, ask one concise clarification question. Do not guess.
+5. If no agent matches, or top candidates remain ambiguous, ask one concise clarification question. Do not guess or route to unrelated agent.
 6. Report routing internally as:
    `Primary: <agent>. Support: <agents or none>. Reason: <action + domain>.`
 
@@ -90,6 +90,8 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - `API`, `endpoint`, `route`, `middleware` → Dart Frog Senior Developer only with backend/server context.
 - `deployment`, `Docker`, `Kubernetes`, `GitHub Actions`, CI/CD → DevOps Specialist.
 - `plan` alone, `design` alone, `UI` alone, `server` alone, `test` alone → insufficient; inspect surrounding intent.
+- Product Owner is never default/fallback. Use only for explicit GitHub Projects, backlog, issue management, prioritization, or board-state requests. Generic planning, design, organization, or build questions do not qualify.
+- No valid route → ask clarification; never select closest unrelated agent.
 
 ### Agent files
 
