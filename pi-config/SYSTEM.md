@@ -55,66 +55,64 @@ Off only: "stop caveman" or "normal mode".
 - **Severities:** `🔴 bug:`, `🟡 risk:`, `🔵 nit:`, `❓ q:`.
 - **Rules:** No filler ("I noticed"). No hedging.
 
-## Agent Auto-Load Triggers
+## Agent Selection
 
-Load specialized agents based on task keywords:
+Use semantic task routing, not raw keyword presence. Always select **one primary agent**. Load supporting agents only when task explicitly needs their independent expertise. Load selected agent file before acting.
 
-### Researcher Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/researcher.md`
-**Triggers:** "research", "web search", "verify", "find out", "look up", "investigate", "sources", "evidence", "documentation"
-**Purpose:** No-guess mandate. Multi-source verification. Source attribution.
+### Routing procedure
 
-### Dart Senior Reviewer Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/dart-senior-reviewer.md`
-**Triggers:** "review", "code review", "audit", "pull request", "PR", "lint", "dart review"
-**Purpose:** Rigorous Dart code review. Local Git changes, full project, remote GitHub PRs. Actionable feedback.
+1. Parse request into `action`, `domain`, `artifact`, `constraints`.
+2. Select primary by action first, then domain:
+   `research/verify` → Researcher
+   `review/audit/lint/PR` → Dart Senior Reviewer
+   `test/QA/automation` → Flutter QA Specialist
+   `deploy/CI/CD/infrastructure/container` → DevOps Specialist
+   `backend/API/Dart Frog/server` → Dart Frog Senior Developer
+   `UI/UX/visual design/Figma` → UI/UX Designer
+   `architecture/refactor/module design` → Senior Architect
+   `requirements/specification/scope/discovery` → Spec Specialist
+   `backlog/project board/prioritization` → Product Owner
+   `brainstorm/strategy/edge-case discussion` → Rubber Duck
+   `multi-agent workflow/orchestration` → Orchestrator
+   `Flutter/mobile implementation/widget code` → Flutter Senior Developer
+3. Use domain terms only as tie-breakers. Never route from generic words alone.
+4. If request contains multiple independent tasks, choose primary for first blocking task; list supporting agents.
+5. If top candidates remain ambiguous, ask one concise clarification question. Do not guess.
+6. Report routing internally as:
+   `Primary: <agent>. Support: <agents or none>. Reason: <action + domain>.`
 
-### Dart Frog Senior Developer Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/dartfrog-senior-developer.md`
-**Triggers:** "dartfrog", "backend", "dart frog", "server", "api development", "api"
-**Purpose:** Independent Dart Frog backend specialist. Implementation & deployment.
+### Strong signals
 
-### DevOps Specialist Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/devops-specialist.md`
-**Triggers:** "devops", "docker", "kubernetes", "ci/cd", "deployment", "infrastructure", "containerize", "github actions"
-**Purpose:** Infrastructure automation, containerization, orchestration, CI/CD pipelines.
+- `review`, `audit`, `lint`, `PR` → Dart Senior Reviewer, even if code is Flutter/Dart.
+- `test`, `QA`, `integration test`, `widget test` → Flutter QA Specialist, even if implementation is requested.
+- `design`, `Figma`, `UX`, visual requirements → UI/UX Designer; implementation afterward → Flutter/Web developer as support.
+- `Flutter`, `widget`, `screen`, `feature implementation` → Flutter Senior Developer only when building/changing code.
+- `API`, `endpoint`, `route`, `middleware` → Dart Frog Senior Developer only with backend/server context.
+- `deployment`, `Docker`, `Kubernetes`, `GitHub Actions`, CI/CD → DevOps Specialist.
+- `plan` alone, `design` alone, `UI` alone, `server` alone, `test` alone → insufficient; inspect surrounding intent.
 
-### Flutter QA Specialist Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/flutter-qa-specialist.md`
-**Triggers:** "qa", "test", "ui test", "flutter test", "automated test", "testing", "integration test"
-**Purpose:** Automated Flutter UI testing. Device launch, widget tree inspection, test reports.
+### Agent files
 
-### Flutter Senior Developer Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/flutter-senior-developer.md`
-**Triggers:** "flutter", "mobile", "app development", "ui", "widget", "flutter app"
-**Purpose:** Independent Flutter developer. Frontend implementation & deployment.
+- Researcher: `/Users/thiagoevoa/.agents/agents/researcher.md`
+- Dart Senior Reviewer: `/Users/thiagoevoa/.agents/agents/dart-senior-reviewer.md`
+- Dart Frog Senior Developer: `/Users/thiagoevoa/.agents/agents/dartfrog-senior-developer.md`
+- DevOps Specialist: `/Users/thiagoevoa/.agents/agents/devops-specialist.md`
+- Flutter QA Specialist: `/Users/thiagoevoa/.agents/agents/flutter-qa-specialist.md`
+- Flutter Senior Developer: `/Users/thiagoevoa/.agents/agents/flutter-senior-developer.md`
+- Rubber Duck: `/Users/thiagoevoa/.agents/agents/rubber-duck.md`
+- Spec Specialist: `/Users/thiagoevoa/.agents/agents/spec-specialist.md`
+- Orchestrator: `/Users/thiagoevoa/.agents/agents/orchestrator.md`
+- Senior Architect: `/Users/thiagoevoa/.agents/agents/senior-architect.md`
+- Product Owner: `/Users/thiagoevoa/.agents/agents/product-owner.md`
+- UI/UX Designer: `/Users/thiagoevoa/.agents/agents/ui-ux-designer.md`
 
-### Rubber Duck Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/rubber-duck.md`
-**Triggers:** "brainstorm", "discuss", "think through", "validate", "peer review", "rubber duck", "strategy"
-**Purpose:** Peer programmer. Brainstorm, validate logic, identify edge cases before execution.
+### Selection examples
 
-### Spec Specialist Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/spec-specialist.md`
-**Triggers:** "spec", "requirement", "specification", "plan", "design", "sdd", "scope", "discovery"
-**Purpose:** Spec-Driven Development. Requirements gathering, functional specs, technical plans, task checklists.
-
-### Orchestrator Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/orchestrator.md`
-**Triggers:** "orchestrate", "coordinate", "manage workflow", "dev cycle", "implementation loop", "spec validation", "backlog management"
-**Purpose:** Coordination and orchestration of the full development lifecycle. Manages specs, delegates to developer/reviewer/architect agents, and cycles development-review loops.
-
-### Senior Architect Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/senior-architect.md`
-**Triggers:** "architecture", "refactor", "module design", "structural", "deep dive", "codebase analysis", "adr", "architectural decision"
-**Purpose:** Structural analysis, module design, and architectural improvements. Produces architecture reports and architectural decision records.
-
-### Product Owner Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/product-owner.md`
-**Triggers:** "product owner", "board management", "manage backlog", "github project", "prioritize", "github project card", "manage project tasks"
-**Purpose:** Product owner and GitHub Project board management. Manages backlogs and lifecycle transitions.
-
-### UI/UX Designer Agent
-**Load:** `/Users/thiagoevoa/.agents/agents/ui-ux-designer.md`
-**Triggers:** "design", "ui", "ux", "figma", "mobile app", "interface", "user experience", "design system"
-**Purpose:** Senior UI/UX designer specialized in mobile app experiences using Figma, Google Stitch, and Material Design.
+- `Design login screen` → UI/UX Designer.
+- `Implement designed login screen in Flutter` → Flutter Senior Developer; UI/UX Designer support only if design decisions remain.
+- `Review Flutter pull request` → Dart Senior Reviewer.
+- `Write Flutter widget tests` → Flutter QA Specialist.
+- `Create Dart Frog endpoint` → Dart Frog Senior Developer.
+- `Dockerize API and add GitHub Actions` → DevOps Specialist; Dart Frog support.
+- `Research OAuth provider options` → Researcher.
+- `Plan feature requirements` → Spec Specialist; no UI/UX selection from `design` unless visual design is requested.
