@@ -78,15 +78,31 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 
 #### Notes Extension
 
-`notes-extension.ts` stores compact durable lessons under `agent/notes/` in each project:
+`notes-extension.ts` stores compact durable lessons under OS account's global `~/.pi/agent/notes/` directory. It resolves OS account home, not project cwd or mutable `HOME`, so notes never land in a repository-local `.pi/agent/notes/` directory:
 
 - `/takenote`: Synthesize and save smallest durable lesson from current session.
-- `search_notes`: Search note descriptions/content before loading full notes.
+- `search_notes`: Search note descriptions/content before loading full notes. Returns a small bounded set of related notes by default.
+  - `limit`: Maximum direct matches; default `5`, maximum `20`.
+  - `relatedLimit`: Maximum additional related notes; default `3`.
+  - `relatedDepth`: Relationship hops; default `1`, maximum `2`.
+  - `includeContent`: Include compact previews for direct matches; off by default to reduce context tokens.
 - `read_note`: Read note content and related-note links by ID.
 - `/takenote --dry-run`: Preview synthesis without writing.
 - `/takenote --force-new`: Skip duplicate detection.
 - `/takenote --update <id>`: Update existing note by ID.
 - `/takenote --related <id1,id2>`: Override related-note links.
+
+#### Bounded related-note search
+
+`search_notes` performs lexical search first, then follows existing `relatedNotes` links with strict bounds. Direct matches appear before related matches:
+
+```text
+search_notes(query, limit: 5, relatedLimit: 3, relatedDepth: 1)
+  -> up to 5 direct matches
+  -> up to 3 one-hop related notes
+```
+
+Related results contain `matchType: "related"`, `relatedTo`, and `depth`. They do not include note bodies. This keeps default retrieval compact and lets the agent request more context explicitly with a larger `limit`, `relatedLimit`, or `relatedDepth`.
 
 ### 5. Pi Config (`pi-config/`)
 Default environment configurations:

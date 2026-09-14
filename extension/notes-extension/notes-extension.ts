@@ -1,3 +1,4 @@
+import { homedir, userInfo } from "node:os";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
@@ -38,7 +39,7 @@ type Candidate = {
 	score: number;
 };
 
-const NOTES_ROOT = ["agent", "notes"];
+const NOTES_ROOT = [".pi", "agent", "notes"];
 const INDEX_FILE = "index.json";
 const INDEX_VERSION = 1 as const;
 const MAX_DESCRIPTION_LENGTH = 96;
@@ -126,8 +127,20 @@ const ensureDir = async (directory: string): Promise<void> => {
 	await fs.mkdir(directory, { recursive: true });
 };
 
-const getPaths = (cwd: string): { notesDir: string; indexPath: string } => {
-	const notesDir = path.join(cwd, ...NOTES_ROOT);
+const getUserHome = (): string => {
+	// Use operating-system account home, not process cwd or mutable HOME.
+	// This keeps notes in the home of the user running the installed extension.
+	try {
+		const accountHome = userInfo().homedir;
+		if (accountHome) return accountHome;
+	} catch {
+		// userInfo can fail in restricted runtimes; retain portable fallback.
+	}
+	return homedir();
+};
+
+const getPaths = (_cwd: string): { notesDir: string; indexPath: string } => {
+	const notesDir = path.join(getUserHome(), ...NOTES_ROOT);
 	return { notesDir, indexPath: path.join(notesDir, INDEX_FILE) };
 };
 
@@ -404,6 +417,47 @@ const ensureKnownRelatedIds = (index: NoteIndex, ids: string[]): string[] => {
 	return [...new Set(ids.filter((id) => available.has(id)))];
 };
 
+type RelatedCandidate = {
+	note: NoteReference;
+	depth: number;
+	relatedTo: string;
+};
+
+const expandRelatedNotes = (
+	index: NoteIndex,
+	seedIds: string[],
+	limit: number,
+	maxDepth: number,
+): RelatedCandidate[] => {
+	const byId = new Map(index.notes.map((note) => [note.id, note]));
+	const visited = new Set(seedIds);
+	const queue = seedIds.map((id) => ({ id, depth: 0 }));
+	const results: RelatedCandidate[] = [];
+
+	while (queue.length > 0 && results.length < limit) {
+		const current = queue.shift();
+		if (!current || current.depth >= maxDepth) continue;
+
+		const source = byId.get(current.id);
+		if (!source) continue;
+
+		for (const relatedId of source.relatedNotes) {
+			if (visited.has(relatedId)) continue;
+			visited.add(relatedId);
+
+			const note = byId.get(relatedId);
+			if (!note) continue;
+
+			const depth = current.depth + 1;
+			results.push({ note, depth, relatedTo: current.id });
+			if (results.length >= limit) break;
+			queue.push({ id: relatedId, depth });
+		}
+	}
+
+	return results;
+};
+
 const buildMarkdown = (description: string, content: string): string => `# ${description}\n\n${content}\n`;
 
 const upsertReference = (index: NoteIndex, ref: NoteReference): void => {
@@ -475,11 +529,17 @@ const registerTools = (pi: ExtensionAPI): void => {
 	pi.registerTool({
 		name: "search_notes",
 		label: "Search Notes",
-		description: "Search note references by description or note content.",
-		promptSnippet: "search_notes(query): find relevant notes before reading full note files.",
+		description: "Search note references by description/content and bounded related-note expansion.",
+		promptSnippet: "search_notes(query): find direct notes, then a small bounded set of related notes.",
 		parameters: Type.Object({
 			query: Type.String({ description: "Search query" }),
-			limit: Type.Optional(Type.Number({ minimum: 1, maximum: 20, description: "Maximum results" })),
+			limit: Type.Optional(Type.Number({ minimum: 1, maximum: 20, description: "Maximum direct matches" })),
+			relatedLimit: Type.Optional(
+				Type.Number({ minimum: 0, maximum: 20, description: "Maximum additional related notes" }),
+			),
+			relatedDepth: Type.Optional(
+				Type.Number({ minimum: 1, maximum: 2, description: "Maximum relationship hops" }),
+			),
 			includeContent: Type.Optional(Type.Boolean({ description: "Include compact content preview" })),
 		}),
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
@@ -489,7 +549,9 @@ const registerTools = (pi: ExtensionAPI): void => {
 				return { content: [{ type: "text", text: "[]" }], details: { count: 0 } };
 			}
 
-			const limit = Math.max(1, Math.min(20, Number(params.limit ?? 8)));
+			const limit = Math.max(1, Math.min(20, Number(params.limit ?? 5)));
+			const relatedLimit = Math.max(0, Math.min(20, Number(params.relatedLimit ?? 3)));
+			const relatedDepth = Math.max(1, Math.min(2, Number(params.relatedDepth ?? 1)));
 			const includeContent = Boolean(params.includeContent);
 			const queryTokens = tokenize(query);
 			const scored: Array<{ note: NoteReference; score: number; preview?: string }> = [];
@@ -511,19 +573,49 @@ const registerTools = (pi: ExtensionAPI): void => {
 				if (score > 0) scored.push({ note, score, preview });
 			}
 
-			const results = scored
-				.sort((a, b) => b.score - a.score)
-				.slice(0, limit)
-				.map((item) => ({
+			const directResults = scored.sort((a, b) => b.score - a.score).slice(0, limit);
+			const relatedResults =
+				relatedLimit > 0
+					? expandRelatedNotes(
+							index,
+							directResults.map((item) => item.note.id),
+							relatedLimit,
+							relatedDepth,
+						)
+					: [];
+			const directIds = new Set(directResults.map((item) => item.note.id));
+			const results = [
+				...directResults.map((item) => ({
 					id: item.note.id,
 					description: item.note.description,
 					path: path.join(...NOTES_ROOT, item.note.path),
 					relatedNotes: item.note.relatedNotes,
 					score: Number(item.score.toFixed(3)),
+					matchType: "direct" as const,
 					preview: item.preview,
-				}));
+				})),
+				...relatedResults
+					.filter((item) => !directIds.has(item.note.id))
+					.map((item) => ({
+						id: item.note.id,
+						description: item.note.description,
+						path: path.join(...NOTES_ROOT, item.note.path),
+						relatedNotes: item.note.relatedNotes,
+						score: 0,
+						matchType: "related" as const,
+						relatedTo: item.relatedTo,
+						depth: item.depth,
+					})),
+			];
 
-			return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }], details: { count: results.length } };
+			return {
+				content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
+				details: {
+					count: results.length,
+					directCount: directResults.length,
+					relatedCount: relatedResults.filter((item) => !directIds.has(item.note.id)).length,
+				},
+			};
 		},
 	});
 
@@ -633,7 +725,7 @@ export default function notesExtension(pi: ExtensionAPI): void {
 	registerTools(pi);
 
 	pi.registerCommand("takenote", {
-		description: "Synthesize smallest durable lesson from current session and store it in agent/notes/",
+		description: "Synthesize smallest durable lesson from current session and store it in ~/.pi/agent/notes/",
 		handler: async (args, ctx) => {
 			try {
 				await runTakeNote(args, ctx);
