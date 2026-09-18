@@ -25,6 +25,12 @@ EXTENSIONS_MAPPING = {
     "extension/agent-switcher/agent-switcher.ts": "agent-switcher.ts",
     "extension/subagent-spawner/subagent-spawner.ts": "subagent-spawner.ts",
     "extension/notes-extension/notes-extension.ts": "notes-extension.ts",
+    "extension/stt-extension/stt.ts": "stt.ts",
+    # STT runtime assets stay together because stt.ts resolves the recorder here.
+    "extension/stt-extension/stt/README.md": "stt/README.md",
+    "extension/stt-extension/stt/build-macos.sh": "stt/build-macos.sh",
+    "extension/stt-extension/stt/recorder.swift": "stt/recorder.swift",
+    "extension/stt-extension/stt/macos-recorder": "stt/macos-recorder",
 }
 
 DEFAULT_PI_DIR = Path.home() / ".pi" / "agent" / "extensions"
@@ -47,6 +53,7 @@ def resolve_user_home(username: Optional[str]) -> Path:
 
 
 def link_or_copy(src_path: Path, dest_path: Path, use_symlinks: bool = False, force: bool = True) -> bool:
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
     if dest_path.exists() or dest_path.is_symlink():
         if force:
             if dest_path.is_dir() and not dest_path.is_symlink():
@@ -175,8 +182,7 @@ def main() -> None:
     target_dir = args.target_dir or (user_home / ".pi" / "agent" / "extensions")
     agents_base = args.agents_target or (user_home / ".agents")
 
-    # Default to placing canonical extensions in ~/.agents/extension and wiring to ~/.pi/agent/extensions
-    agents_store_dir = args.agents_target / "extension" if args.agents_target else (agents_base / "extension")
+    agents_store_dir = (args.agents_target or agents_base) / "extension" if args.store_in_agents else None
 
     print(f"Wiring pi extensions from: {source_root}")
     print(f"Detected user: {current_user} -> Home: {user_home}")

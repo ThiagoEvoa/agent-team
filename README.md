@@ -75,6 +75,28 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 - `agent-switcher/agent-switcher.ts`: Interactive agent selector and prompt switching.
 - `subagent-spawner/subagent-spawner.ts`: Isolated subagent delegation and execution management.
 - `notes-extension/notes-extension.ts`: Durable session-note synthesis, semantic note search, and note reading.
+- `stt-extension/stt.ts`: Local macOS speech-to-text using AVAudioEngine and whisper.cpp.
+
+#### Speech-to-text Extension
+
+macOS-only local transcription. Setup wires `stt.ts` plus recorder assets into `~/.pi/agent/extensions/`:
+
+```bash
+./pi-extensions-setup.py
+# Then grant Terminal/Pi microphone access in System Settings.
+~/.pi/agent/extensions/stt/build-macos.sh  # only needed if bundled recorder is unavailable
+```
+
+Install whisper.cpp and a model:
+
+```bash
+brew install whisper-cpp
+mkdir -p ~/.cache/whisper
+curl -L -o ~/.cache/whisper/ggml-small.bin \\
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+```
+
+Use `/stt` or `Ctrl+Shift+V` to start/stop recording. Use `/stt-setup` to diagnose and `/stt-cancel` to discard. Audio remains local and temporary WAV files are deleted after processing.
 
 #### Notes Extension
 
@@ -116,15 +138,17 @@ Default environment configurations:
 ## Installation & Wiring
 
 ### Zero-Config Setup (Default)
-Automatically detects current user (`getpass.getuser()` / `Path.home()`), installs canonical files to `~/.agents/` (`/Users/{user}/.agents/`), and wires them directly into `~/.pi/agent/`:
+Automatically detects current user (`getpass.getuser()` / `Path.home()`) and copies files into `~/.agents/` and `~/.pi/agent/`:
 
 ```bash
 ./agents-setup.py
 ./pi-extensions-setup.py
 ```
 
+Use `--store-in-agents` for extension files stored canonically under `~/.agents/extension/` and symlinked into Pi.
+
 ### Symlink / Development Mode
-Symlinks repository files directly into `~/.agents/` and `~/.pi/agent/` for active editing:
+Symlinks repository files directly into target directories for active editing:
 
 ```bash
 ./agents-setup.py --symlink
@@ -146,3 +170,5 @@ Symlinks repository files directly into `~/.agents/` and `~/.pi/agent/` for acti
 - `--target-dir <path>`: Custom destination directory for pi extensions (default: `~/.pi/agent/extensions`).
 - `--agents-target <path>`: Custom base directory for `.agents` (default: `~/.agents`).
 - `--no-force`: Prevent overwriting existing target files.
+
+STT assets install under `<target-dir>/stt/`; this matches recorder path used by `stt.ts`.
