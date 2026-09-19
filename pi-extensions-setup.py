@@ -20,17 +20,19 @@ import sys
 from typing import Optional
 from pathlib import Path
 
-EXTENSIONS_MAPPING = {
-    "extension/custom-tui/custom-tui.ts": "custom-tui.ts",
-    "extension/agent-switcher/agent-switcher.ts": "agent-switcher.ts",
-    "extension/subagent-spawner/subagent-spawner.ts": "subagent-spawner.ts",
-    "extension/notes-extension/notes-extension.ts": "notes-extension.ts",
-    "extension/stt-extension/stt.ts": "stt.ts",
+EXTENSION_FILES = {
+    "custom-tui": [("extension/custom-tui/custom-tui.ts", "custom-tui.ts")],
+    "agent-switcher": [("extension/agent-switcher/agent-switcher.ts", "agent-switcher.ts")],
+    "subagent-spawner": [("extension/subagent-spawner/subagent-spawner.ts", "subagent-spawner.ts")],
+    "notes": [("extension/notes-extension/notes-extension.ts", "notes-extension.ts")],
     # STT runtime assets stay together because stt.ts resolves the recorder here.
-    "extension/stt-extension/stt/README.md": "stt/README.md",
-    "extension/stt-extension/stt/build-macos.sh": "stt/build-macos.sh",
-    "extension/stt-extension/stt/recorder.swift": "stt/recorder.swift",
-    "extension/stt-extension/stt/macos-recorder": "stt/macos-recorder",
+    "stt": [
+        ("extension/stt-extension/stt.ts", "stt.ts"),
+        ("extension/stt-extension/stt/README.md", "stt/README.md"),
+        ("extension/stt-extension/stt/build-macos.sh", "stt/build-macos.sh"),
+        ("extension/stt-extension/stt/recorder.swift", "stt/recorder.swift"),
+        ("extension/stt-extension/stt/macos-recorder", "stt/macos-recorder"),
+    ],
 }
 
 DEFAULT_PI_DIR = Path.home() / ".pi" / "agent" / "extensions"
@@ -80,6 +82,7 @@ def link_or_copy(src_path: Path, dest_path: Path, use_symlinks: bool = False, fo
 def setup_extensions(
     source_root: Path,
     target_dir: Path,
+    extensions: list[str],
     agents_store_dir: Optional[Path] = None,
     use_symlinks: bool = False,
     force: bool = True,
@@ -93,42 +96,44 @@ def setup_extensions(
         print(f"🔌 Wiring pi agent extensions in: {target_dir}")
         agents_store_dir.mkdir(parents=True, exist_ok=True)
 
-        for src_rel, filename in EXTENSIONS_MAPPING.items():
-            src_path = source_root / src_rel
-            agent_ext_dest = agents_store_dir / filename
-            pi_ext_dest = target_dir / filename
+        for extension in extensions:
+            for src_rel, filename in EXTENSION_FILES[extension]:
+                src_path = source_root / src_rel
+                agent_ext_dest = agents_store_dir / filename
+                pi_ext_dest = target_dir / filename
 
-            if not src_path.exists():
-                print(f"❌ Error: Source file not found: {src_path}", file=sys.stderr)
-                success = False
-                continue
+                if not src_path.exists():
+                    print(f"❌ Error: Source file not found: {src_path}", file=sys.stderr)
+                    success = False
+                    continue
 
-            # Step 1: Put file into ~/.agents/extension/
-            ok_store = link_or_copy(src_path, agent_ext_dest, use_symlinks=use_symlinks, force=force)
-            if not ok_store:
-                success = False
-                continue
+                # Step 1: Put file into ~/.agents/extension/
+                ok_store = link_or_copy(src_path, agent_ext_dest, use_symlinks=use_symlinks, force=force)
+                if not ok_store:
+                    success = False
+                    continue
 
-            # Step 2: Wire from ~/.agents/extension/ into ~/.pi/agent/extensions/ via symlink
-            ok_wire = link_or_copy(agent_ext_dest, pi_ext_dest, use_symlinks=True, force=force)
-            if not ok_wire:
-                success = False
+                # Step 2: Wire from ~/.agents/extension/ into ~/.pi/agent/extensions/ via symlink
+                ok_wire = link_or_copy(agent_ext_dest, pi_ext_dest, use_symlinks=True, force=force)
+                if not ok_wire:
+                    success = False
 
     else:
         # Standard direct mode
         print(f"Target extensions directory: {target_dir}")
-        for src_rel, target_filename in EXTENSIONS_MAPPING.items():
-            src_path = source_root / src_rel
-            dest_path = target_dir / target_filename
+        for extension in extensions:
+            for src_rel, target_filename in EXTENSION_FILES[extension]:
+                src_path = source_root / src_rel
+                dest_path = target_dir / target_filename
 
-            if not src_path.exists():
-                print(f"❌ Error: Source file not found: {src_path}", file=sys.stderr)
-                success = False
-                continue
+                if not src_path.exists():
+                    print(f"❌ Error: Source file not found: {src_path}", file=sys.stderr)
+                    success = False
+                    continue
 
-            ok = link_or_copy(src_path, dest_path, use_symlinks=use_symlinks, force=force)
-            if not ok:
-                success = False
+                ok = link_or_copy(src_path, dest_path, use_symlinks=use_symlinks, force=force)
+                if not ok:
+                    success = False
 
     return success
 
@@ -173,8 +178,16 @@ def main() -> None:
         action="store_true",
         help="Do not overwrite existing files in the target directory",
     )
+    parser.add_argument(
+        "--extensions",
+        nargs="+",
+        choices=EXTENSION_FILES.keys(),
+        metavar="EXTENSION",
+        help="Install only selected extensions (default: all). Choices: " + ", ".join(EXTENSION_FILES),
+    )
 
     args = parser.parse_args()
+    selected_extensions = args.extensions or list(EXTENSION_FILES)
     source_root = Path(__file__).resolve().parent
 
     current_user = args.user or getpass.getuser()
@@ -186,10 +199,12 @@ def main() -> None:
 
     print(f"Wiring pi extensions from: {source_root}")
     print(f"Detected user: {current_user} -> Home: {user_home}")
+    print(f"Selected extensions: {', '.join(selected_extensions)}")
 
     ok = setup_extensions(
         source_root=source_root,
         target_dir=target_dir,
+        extensions=selected_extensions,
         agents_store_dir=agents_store_dir,
         use_symlinks=args.symlink,
         force=not args.no_force,

@@ -145,7 +145,13 @@ Automatically detects current user (`getpass.getuser()` / `Path.home()`) and cop
 ./pi-extensions-setup.py
 ```
 
-Use `--store-in-agents` for extension files stored canonically under `~/.agents/extension/` and symlinked into Pi.
+Install selected extensions only:
+
+```bash
+./pi-extensions-setup.py --extensions custom-tui notes stt
+```
+
+Omit `--extensions` to install all extensions. Use `--store-in-agents` for extension files stored canonically under `~/.agents/extension/` and symlinked into Pi.
 
 ### Symlink / Development Mode
 Symlinks repository files directly into target directories for active editing:
@@ -170,5 +176,6 @@ Symlinks repository files directly into target directories for active editing:
 - `--target-dir <path>`: Custom destination directory for pi extensions (default: `~/.pi/agent/extensions`).
 - `--agents-target <path>`: Custom base directory for `.agents` (default: `~/.agents`).
 - `--no-force`: Prevent overwriting existing target files.
+- `--extensions <name> [<name> ...]`: Install selected extensions; default installs all. Choices: `custom-tui`, `agent-switcher`, `subagent-spawner`, `notes`, `stt`.
 
 STT assets install under `<target-dir>/stt/`; this matches recorder path used by `stt.ts`.
