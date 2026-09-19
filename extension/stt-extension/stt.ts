@@ -1,5 +1,4 @@
 import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-coding-agent";
-import { Key } from "@earendil-works/pi-tui";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm } from "node:fs/promises";
@@ -169,7 +168,7 @@ export default function sttExtension(pi: ExtensionAPI): void {
 			else if (pathToTranscribe) await rm(pathToTranscribe, { force: true }).catch(() => undefined);
 		});
 		ctx.ui.setStatus("stt", "Recording… /stt to stop");
-		ctx.ui.notify("Recording started. Run /stt again or press Ctrl+Shift+V to stop.", "info");
+		ctx.ui.notify("Recording started. Run /stt again to stop.", "info");
 	};
 
 	const toggle = async (args: string, ctx: ExtensionCommandContext): Promise<void> => {
@@ -188,7 +187,6 @@ export default function sttExtension(pi: ExtensionAPI): void {
 	};
 
 	pi.registerCommand("stt", { description: "Start/stop local macOS speech-to-text", handler: toggle });
-	pi.registerShortcut(Key.ctrlShift("v"), { description: "Toggle local speech-to-text recording", handler: toggle });
 	pi.registerCommand("stt-setup", { description: "Check local speech-to-text dependencies", handler: async (_args, ctx) => setup(ctx) });
 	pi.registerCommand("stt-cancel", { description: "Cancel speech-to-text recording", handler: async (_args, _ctx) => cancelRecording() });
 }

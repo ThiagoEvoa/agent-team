@@ -96,7 +96,7 @@ curl -L -o ~/.cache/whisper/ggml-small.bin \\
   https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
 ```
 
-Use `/stt` or `Ctrl+Shift+V` to start/stop recording. Use `/stt-setup` to diagnose and `/stt-cancel` to discard. Audio remains local and temporary WAV files are deleted after processing.
+Use `/stt` to start/stop recording. Use `/stt-setup` to diagnose and `/stt-cancel` to discard. Audio remains local and temporary WAV files are deleted after processing.
 
 #### Notes Extension
 

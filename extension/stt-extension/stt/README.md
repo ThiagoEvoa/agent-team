@@ -19,8 +19,8 @@ Pi loads `stt.ts` as an extension. Run `/stt-setup` to diagnose.
 
 ## Use
 
-- `/stt` or `Ctrl+Shift+V`: start recording
-- same command/shortcut: stop, transcribe, insert at editor end
+- `/stt`: start recording
+- `/stt` again: stop, transcribe, insert at editor end
 - `/stt-cancel`: cancel and delete audio
 
 `/stt setup` is also accepted as a diagnostic alias by convention; use `/stt-setup` on current Pi.
