@@ -64,6 +64,7 @@ At the start of the orchestration:
 ### 2. Agent Selection Matrix
 Select the appropriate developer and reviewer agents.
 - **Developer Agent Selection** (unless overridden by `developer_agent` parameter):
+  - **Lottie asset tasks**: Use `lottie-agent` for asset creation, editing, optimization, and motion validation. Hand off app integration to the platform developer; Lottie mentions alone do not override research/review/QA routing.
   - **Flutter/Frontend tasks**: Use `flutter-senior-developer` agent.
   - **Dart Frog/Backend tasks**: Use `dartfrog-senior-developer` agent.
   - **DevOps/Infrastructure/Docker/CI-CD tasks**: Use `devops-specialist` agent.

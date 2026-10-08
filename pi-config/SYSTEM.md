@@ -68,6 +68,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
    `test/QA/automation` → Flutter QA Specialist
    `deploy/CI/CD/infrastructure/container` → DevOps Specialist
    `backend/API/Dart Frog/server` → Dart Frog Senior Developer
+   `Lottie/dotLottie asset creation/editing/optimization` → Lottie Agent
    `UI/UX/visual design/Figma` → UI/UX Designer
    `architecture/refactor/module design` → Senior Architect
    `requirements/specification/scope/discovery` → Spec Specialist
@@ -85,6 +86,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 
 - `review`, `audit`, `lint`, `PR` → Dart Senior Reviewer, even if code is Flutter/Dart.
 - `test`, `QA`, `integration test`, `widget test` → Flutter QA Specialist, even if implementation is requested.
+- Lottie/dotLottie asset creation, editing, export, or optimization → Lottie Agent. App integration stays with Flutter/Web developer; research, review, and QA remain action-first. Generic animation/UI design alone does not imply Lottie.
 - `design`, `Figma`, `UX`, visual requirements → UI/UX Designer; implementation afterward → Flutter/Web developer as support.
 - `Flutter`, `widget`, `screen`, `feature implementation` → Flutter Senior Developer only when building/changing code.
 - `API`, `endpoint`, `route`, `middleware` → Dart Frog Senior Developer only with backend/server context.
@@ -107,9 +109,12 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - Senior Architect: `/Users/thiagoevoa/.agents/agents/senior-architect.md`
 - Product Owner: `/Users/thiagoevoa/.agents/agents/product-owner.md`
 - UI/UX Designer: `/Users/thiagoevoa/.agents/agents/ui-ux-designer.md`
+- Lottie Agent: `/Users/thiagoevoa/.agents/agents/lottie-agent.md`
 
 ### Selection examples
 
+- `Create a looping Lottie loading asset` → Lottie Agent.
+- `Integrate an existing Lottie asset into Flutter` → Flutter Senior Developer.
 - `Design login screen` → UI/UX Designer.
 - `Implement designed login screen in Flutter` → Flutter Senior Developer; UI/UX Designer support only if design decisions remain.
 - `Review Flutter pull request` → Dart Senior Reviewer.

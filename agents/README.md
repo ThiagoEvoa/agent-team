@@ -23,6 +23,7 @@ This folder contains the agent personas used by the Copilot CLI workspace.
 | `flutter-qa-specialist` | Runs Flutter UI tests with real app interactions | UI validation and runtime testing |
 | `devops-specialist` | Handles CI/CD, Docker, and deployment | Infrastructure and pipeline tasks |
 | `ui-ux-designer` | Produces UI/UX direction and design-system guidance | App screens, flows, and visual design |
+| `lottie-agent` | Creates, edits, optimizes, and validates Lottie assets | Lottie JSON, dotLottie, and motion playback specs |
 | `rubber-duck` | Acts as a reasoning partner | Idea stress-testing and tradeoff discussion |
 
 ## Notes

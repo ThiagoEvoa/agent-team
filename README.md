@@ -38,6 +38,7 @@ Markdown specifications defining agent persona, constraints, and tool access:
 | `flutter-qa-specialist.md` | Automated UI test runs and widget tree inspection | Mobile test automation |
 | `devops-specialist.md` | Docker, Kubernetes, CI/CD pipelines, and cloud setup | Infrastructure automation |
 | `ui-ux-designer.md` | Design systems, mobile UI/UX, Material Design | Interface and UX specification |
+| `lottie-agent.md` | Motion planning, asset creation, optimization, and validation | Lottie JSON and dotLottie assets |
 | `rubber-duck.md` | Interactive peer thinking, edge case and logic stress tests | Brainstorming & reasoning |
 
 ### 2. Skills (`skills/`)
@@ -54,6 +55,7 @@ Structured procedural playbooks and templates loaded by agents:
 - `devops-senior-workflow`: Docker multi-stage builds, Kubernetes manifests, and CI/CD.
 - `research-workflow`: Source synthesis and fact checking.
 - `ui-ux-mobile-workflow`: Mobile design patterns and accessibility requirements.
+- `lottie-workflow`: LottieFiles Creator MCP discovery, motion design, asset validation, and integration handoffs.
 - `codebase-design`: Architectural principles for deep module design.
 - `improve-codebase-architecture`: Shallow module discovery and refactor reports.
 - `diagnosing-bugs`: 6-phase systematic debugging and resolution loop.

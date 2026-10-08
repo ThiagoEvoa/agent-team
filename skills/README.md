@@ -23,6 +23,7 @@ This folder contains the workflow guides that agents activate before doing work.
 | `devops-senior-workflow` | CI/CD, Docker, and infrastructure guidance | `devops-specialist` |
 | `research-workflow` | Rigorous research and source-backed answers | `researcher` |
 | `ui-ux-mobile-workflow` | Mobile design-system and UX guidance | `ui-ux-designer` |
+| `lottie-workflow` | Lottie asset planning, MCP creation, validation, and handoff | `lottie-agent` |
 | `codebase-design` | Architecture vocabulary and design heuristics | `senior-architect` |
 | `improve-codebase-architecture` | Deep architecture analysis and report generation | `senior-architect` |
 | `diagnosing-bugs` | Deterministic bug repro and triage workflow | most implementation and QA agents |
