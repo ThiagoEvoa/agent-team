@@ -14,6 +14,7 @@ import os
 import shutil
 import stat
 import sys
+import tempfile
 from typing import Optional
 from pathlib import Path
 
@@ -33,82 +34,58 @@ def resolve_user_home(username: Optional[str]) -> Path:
 
 
 def sync_directory(src_dir: Path, dest_dir: Path, use_symlinks: bool = False, force: bool = True) -> bool:
-    if not src_dir.exists():
+    """Stage each source before replacing its destination; rollback failed replacements."""
+    if not src_dir.is_dir():
         print(f"❌ Error: Source directory does not exist: {src_dir}", file=sys.stderr)
         return False
 
     dest_dir.mkdir(parents=True, exist_ok=True)
     success = True
-
     for item in src_dir.iterdir():
         if item.name.startswith(".DS_Store"):
             continue
-
         target = dest_dir / item.name
-
-        if target.exists() or target.is_symlink():
-            if force:
-                if target.is_dir() and not target.is_symlink():
-                    shutil.rmtree(target)
-                else:
-                    target.unlink()
-            else:
-                print(f"⚠️  Skipping {target.name}: already exists (use --force)")
+        try:
+            source = item.resolve(strict=True)
+            if target.exists() and os.path.samefile(source, target):
+                print(f"⏭️ Already wired: {target}")
+                continue
+            if source.is_dir() and target.resolve().is_relative_to(source):
+                raise ValueError("Destination must not be inside source directory")
+            if (target.exists() or target.is_symlink()) and not force:
+                print(f"⚠️ Skipping {target}: already exists")
                 continue
 
-        try:
-            if use_symlinks:
-                target.symlink_to(item.resolve())
-                print(f"🔗 Linked: {item.relative_to(src_dir.parent)} -> {target}")
-            else:
-                if item.is_dir():
-                    shutil.copytree(item, target)
+            # Stage on destination filesystem before touching the installed copy.
+            with tempfile.TemporaryDirectory(prefix=".agent-setup-", dir=dest_dir) as tmp:
+                staged, backup = Path(tmp) / "new", Path(tmp) / "old"
+                if use_symlinks:
+                    staged.symlink_to(source)
+                elif source.is_dir():
+                    shutil.copytree(source, staged)
                 else:
-                    shutil.copy2(item, target)
-                    if item.suffix == ".py" or os.access(item, os.X_OK):
-                        current_mode = target.stat().st_mode
-                        target.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-                print(f"📋 Copied: {item.relative_to(src_dir.parent)} -> {target}")
-        except Exception as e:
-            print(f"❌ Failed sync {item} -> {target}: {e}", file=sys.stderr)
+                    shutil.copy2(source, staged)
+                    if item.suffix == ".py" or os.access(source, os.X_OK):
+                        staged.chmod(staged.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+                had_target = target.exists() or target.is_symlink()
+                if had_target:
+                    target.rename(backup)
+                try:
+                    staged.rename(target)
+                except Exception:
+                    if had_target:
+                        backup.rename(target)
+                    raise
+            print(f"{'🔗 Linked' if use_symlinks else '📋 Copied'}: {item} -> {target}")
+        except Exception as error:
+            print(f"❌ Failed sync {item} -> {target}: {error}", file=sys.stderr)
             success = False
-
     return success
 
 
 def wire_directory(src_dir: Path, dest_dir: Path, force: bool = True) -> bool:
-    """Creates symlinks in dest_dir pointing to files in src_dir."""
-    if not src_dir.exists():
-        print(f"❌ Error: Source directory for wiring does not exist: {src_dir}", file=sys.stderr)
-        return False
-
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    success = True
-
-    for item in src_dir.iterdir():
-        if item.name.startswith(".DS_Store"):
-            continue
-
-        target = dest_dir / item.name
-
-        if target.exists() or target.is_symlink():
-            if force:
-                if target.is_dir() and not target.is_symlink():
-                    shutil.rmtree(target)
-                else:
-                    target.unlink()
-            else:
-                print(f"⚠️  Skipping {target.name}: already exists in {dest_dir} (use --force)")
-                continue
-
-        try:
-            target.symlink_to(item.resolve())
-            print(f"🔌 Wired (symlink): {target} -> {item.resolve()}")
-        except Exception as e:
-            print(f"❌ Failed wiring {target} -> {item}: {e}", file=sys.stderr)
-            success = False
-
-    return success
+    """Wire validated source entries using the same safe replacement path."""
+    return sync_directory(src_dir, dest_dir, use_symlinks=True, force=force)
 
 
 def main() -> None:

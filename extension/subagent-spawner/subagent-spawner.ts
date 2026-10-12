@@ -6,7 +6,7 @@ import { homedir } from "node:os";
 
 type SpawnArgs = {
 	prompt: string;
-	agent?: string;
+	agent: string;
 	model?: string;
 	provider?: string;
 	thinking?: "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
@@ -203,20 +203,6 @@ function resolveModelProvider(
 	return { model, provider };
 }
 
-function parseSystemTriggerBlocks(systemMdContent: string): Array<{ agentName: string; keywords: string[] }> {
-	const blocks = systemMdContent.split(/###\s+/);
-	const mappings: Array<{ agentName: string; keywords: string[] }> = [];
-	for (const block of blocks) {
-		const loadMatch = block.match(/\*\*Load:\*\*\s*.*?agents\/([a-zA-Z0-9_-]+)\.(md|json)/);
-		const triggersMatch = block.match(/\*\*Triggers:\*\*\s*(.+)/);
-		if (!loadMatch || !triggersMatch) continue;
-		const agentName = loadMatch[1];
-		const keywords = Array.from(triggersMatch[1].matchAll(/"([^"]+)"/g)).map((m) => m[1].toLowerCase());
-		if (keywords.length > 0) mappings.push({ agentName, keywords });
-	}
-	return mappings;
-}
-
 function parseFrontmatterModel(markdown: string): string | undefined {
 	const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
 	if (!match) return undefined;
@@ -234,12 +220,15 @@ function parseFrontmatterModel(markdown: string): string | undefined {
 }
 
 function loadAgentInstructions(agentName: string): { instructions: string; sourcePath: string; modelPreference?: string } | null {
+	if (!/^[a-z0-9][a-z0-9_-]*$/.test(agentName)) return null;
 	const agentsDir = getAgentsDir();
 	const mdPath = path.join(agentsDir, `${agentName}.md`);
 	const jsonPath = path.join(agentsDir, `${agentName}.json`);
 
 	if (fs.existsSync(mdPath)) {
 		const instructions = fs.readFileSync(mdPath, "utf-8");
+        const frontmatter = instructions.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+        if (!frontmatter || frontmatter[1].match(/^name:\s*([a-z0-9_-]+)\s*$/m)?.[1] !== agentName || !/^description:\s*\S.+$/m.test(frontmatter[1])) return null;
 		return {
 			instructions,
 			sourcePath: mdPath,
@@ -249,7 +238,8 @@ function loadAgentInstructions(agentName: string): { instructions: string; sourc
 	if (fs.existsSync(jsonPath)) {
 		try {
 			const raw = fs.readFileSync(jsonPath, "utf-8");
-			const parsed = JSON.parse(raw) as { instructions?: string; model?: string };
+			const parsed = JSON.parse(raw) as { name?: string; description?: string; instructions?: string; model?: string };
+            if (parsed.name !== agentName || !parsed.description?.trim() || !parsed.instructions?.trim()) return null;
 			const instructions = typeof parsed.instructions === "string" ? parsed.instructions : raw;
 			return {
 				instructions,
@@ -263,47 +253,11 @@ function loadAgentInstructions(agentName: string): { instructions: string; sourc
 	return null;
 }
 
-function resolveAgentForTask(taskPrompt: string, explicitAgent?: string): ResolvedAgent | null {
-	const selectedName = typeof explicitAgent === "string" && explicitAgent.trim() ? explicitAgent.trim() : null;
-	if (selectedName) {
-		const loaded = loadAgentInstructions(selectedName);
-		if (!loaded) return null;
-		return {
-			name: selectedName,
-			instructions: loaded.instructions,
-			triggers: [],
-			sourcePath: loaded.sourcePath,
-			modelPreference: loaded.modelPreference,
-		};
-	}
-
-	const systemMdPath = path.join(getAgentBaseDir(), "SYSTEM.md");
-	if (!fs.existsSync(systemMdPath)) return null;
-
-	let systemMd = "";
-	try {
-		systemMd = fs.readFileSync(systemMdPath, "utf-8");
-	} catch {
-		return null;
-	}
-
-	const mappings = parseSystemTriggerBlocks(systemMd);
-	if (mappings.length === 0) return null;
-
-	const promptLower = taskPrompt.toLowerCase();
-	for (const mapping of mappings) {
-		if (!mapping.keywords.some((keyword) => promptLower.includes(keyword))) continue;
-		const loaded = loadAgentInstructions(mapping.agentName);
-		if (!loaded) continue;
-		return {
-			name: mapping.agentName,
-			instructions: loaded.instructions,
-			triggers: mapping.keywords,
-			sourcePath: loaded.sourcePath,
-			modelPreference: loaded.modelPreference,
-		};
-	}
-	return null;
+function resolveAgentForTask(explicitAgent?: string): ResolvedAgent | null {
+    const name = explicitAgent?.trim();
+    if (!name) return null;
+    const loaded = loadAgentInstructions(name);
+    return loaded ? { name, ...loaded, triggers: [] } : null;
 }
 
 async function runSubagent(
@@ -328,7 +282,11 @@ async function runSubagent(
 	const inheritedModel = typeof activeModel?.id === "string" && activeModel.id.trim() ? activeModel.id.trim() : undefined;
 	const inheritedProvider =
 		typeof activeModel?.provider === "string" && activeModel.provider.trim() ? activeModel.provider.trim() : undefined;
-	const resolvedAgent = resolveAgentForTask(prompt, args.agent);
+	const resolvedAgent = resolveAgentForTask(args.agent);
+    if (!resolvedAgent) {
+        return toTextResult("spawnSubagent failed: supply an explicit valid `agent` filename stem selected using semantic SYSTEM.md routing.", { ok: false, error: "invalid_agent" });
+    }
+    if (signal?.aborted) return toTextResult("spawnSubagent was aborted before launch.", { ok: false, aborted: true });
 	const explicitModel = typeof args.model === "string" && args.model.trim() ? args.model.trim() : undefined;
 	const agentModelPreference =
 		typeof resolvedAgent?.modelPreference === "string" && resolvedAgent.modelPreference.trim()
@@ -384,7 +342,7 @@ async function runSubagent(
 	if (resolvedAgent && resolvedAgent.instructions.trim()) {
 		appendedPromptDir = fs.mkdtempSync(path.join(process.env.TMPDIR || "/tmp", "pi-subagent-spawner-"));
 		appendedPromptPath = path.join(appendedPromptDir, `agent-${resolvedAgent.name}.md`);
-		fs.writeFileSync(appendedPromptPath, resolvedAgent.instructions, { encoding: "utf-8", mode: 0o600 });
+		fs.writeFileSync(appendedPromptPath, `${resolvedAgent.instructions}\n\n## Delegated persona\nParent assigned ${resolvedAgent.name} for this task. Follow this persona; if selectAgent is available, select exactly ${resolvedAgent.name} to synchronize TUI before work. Do not infer another role from incidental task keywords.\n`, { encoding: "utf-8", mode: 0o600 });
 		cliArgs.push("--append-system-prompt", appendedPromptPath);
 	}
 
@@ -395,6 +353,7 @@ async function runSubagent(
 		cwd,
 		stdio: ["ignore", "pipe", "pipe"],
 		shell: false,
+        detached: process.platform !== "win32",
 	});
 
 	let stdout = "";
@@ -403,33 +362,41 @@ async function runSubagent(
 	let aborted = false;
 	let settled = false;
 
-	const killChild = () => {
-		if (settled || child.killed) return;
-		try {
-			child.kill("SIGTERM");
-		} catch {
-			// Ignore kill races.
-		}
-	};
-
-	const timeout = setTimeout(() => {
-		timedOut = true;
-		killChild();
-	}, timeoutMs);
-
-	const onAbort = () => {
-		aborted = true;
-		killChild();
-	};
-	signal?.addEventListener("abort", onAbort, { once: true });
-
-	child.stdout?.on("data", (chunk: Buffer | string) => {
-		stdout += String(chunk);
-	});
-
-	child.stderr?.on("data", (chunk: Buffer | string) => {
-		stderr += String(chunk);
-	});
+    let escalation: ReturnType<typeof setTimeout> | undefined;
+    let stopRequested = false;
+    let outputTruncated = false;
+    const sendSignal = (name: NodeJS.Signals) => {
+        try {
+            if (process.platform !== "win32" && child.pid) process.kill(-child.pid, name);
+            else child.kill(name);
+        } catch { /* Process already exited. */ }
+    };
+    const killChild = () => {
+        if (settled || stopRequested) return;
+        stopRequested = true;
+        sendSignal("SIGTERM");
+        escalation = setTimeout(() => sendSignal("SIGKILL"), 1000);
+    };
+    const timeout = setTimeout(() => {
+        timedOut = true;
+        killChild();
+    }, timeoutMs);
+    const onAbort = () => {
+        aborted = true;
+        killChild();
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+    if (signal?.aborted) onAbort();
+    child.stdout?.on("data", (chunk: Buffer | string) => {
+        const text = String(chunk);
+        if (stdout.length + text.length > maxOutputChars) outputTruncated = true;
+        stdout += text.slice(0, Math.max(0, maxOutputChars - stdout.length));
+    });
+    child.stderr?.on("data", (chunk: Buffer | string) => {
+        const text = String(chunk);
+        if (stderr.length + text.length > maxOutputChars) outputTruncated = true;
+        stderr += text.slice(0, Math.max(0, maxOutputChars - stderr.length));
+    });
 
 	const exitCode = await new Promise<number | null>((resolve) => {
 		child.on("close", (code) => {
@@ -443,6 +410,8 @@ async function runSubagent(
 	});
 
 	clearTimeout(timeout);
+    if (stopRequested) sendSignal("SIGKILL"); // Reap remaining POSIX process-group members.
+    if (escalation) clearTimeout(escalation);
 	signal?.removeEventListener("abort", onAbort);
 	if (appendedPromptPath) {
 		try {
@@ -461,6 +430,10 @@ async function runSubagent(
 
 	const output = (stdout || stderr || "").trim();
 	const trimmed = trimOutput(output, maxOutputChars);
+    if (outputTruncated) {
+        trimmed.truncated = true;
+        trimmed.text += `\n\n[output truncated to ${maxOutputChars} chars]`;
+    }
 	const metadata = {
 		ok: !timedOut && !aborted && exitCode === 0,
 		exitCode,
@@ -549,7 +522,7 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 		promptSnippet: "Spawn a child Pi subagent for an isolated task",
 		parameters: {
 			type: "object",
-			required: ["prompt"],
+			required: ["prompt", "agent"],
 			properties: {
 				prompt: {
 					type: "string",
@@ -575,7 +548,7 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 				},
 				agent: {
 					type: "string",
-					description: "Optional explicit agent name to load. If omitted, inferred from SYSTEM.md triggers and delegated task.",
+					description: "Required explicit agent filename stem. Choose semantically using SYSTEM.md; no keyword inference.",
 				},
 				timeoutMs: {
 					type: "number",

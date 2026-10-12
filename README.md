@@ -32,6 +32,7 @@ Markdown specifications defining agent persona, constraints, and tool access:
 | `product-owner.md` | Backlog grooming and GitHub Projects (v2) board transitions | Task & board lifecycle |
 | `flutter-senior-developer.md` | Dart MCP & workspace-driven Flutter development | Frontend mobile applications |
 | `firebase-agent.md` | Firebase MCP-driven configuration, rules, Functions, and operations | Firebase services and backend resources |
+| `web-senior-developer.md` | Astro and Next.js implementation with framework MCP guidance | Websites and interactive web products |
 | `dartfrog-senior-developer.md` | Dart Frog backend development, routing, and middleware | Backend API services |
 | `dart-senior-reviewer.md` | Two-axis architectural, quality, and security audits | Strict PR and code reviews |
 | `senior-architect.md` | High-leverage module design, ADRs, codebase refactors | System architecture |
@@ -51,6 +52,7 @@ Structured procedural playbooks and templates loaded by agents:
 - `product-owner-workflow`: GitHub Projects tracking and issue synchronization.
 - `flutter-senior-workflow`: Flutter code standards, workspace templates, and validation.
 - `firebase-workflow`: Firebase MCP discovery, target verification, secure implementation, emulator validation, and authorized operations.
+- `web-senior-workflow`: Astro/Next.js implementation, framework MCP guidance, and validation.
 - `dartfrog-senior-workflow`: Backend route structure and middleware patterns.
 - `dart-senior-reviewer-workflow`: Review standards, Fowler smells, two-axis reports.
 - `flutter-qa-consultant`: Dart MCP test runners and UI interaction flows.
@@ -112,16 +114,20 @@ No separate keyword router or process-global display state.
 
 - `/agent <exact-name>` pins a manual persona across tasks.
 - `/agent auto` returns to per-task semantic selection.
-- `/agent` opens agent picker.
+- `/agent` opens agent picker; only valid persona files appear (not README files).
+- `spawnSubagent` requires explicit `agent` selected using semantic routing. Enable with `/subagent on`; no retired keyword inference. Timeout/abort sends `SIGTERM`, then `SIGKILL` after a one-second grace period; POSIX process-group cleanup also covers descendants.
 - Reload extensions with `/reload` after installation or changes.
 
 Regression tests (Node with native TypeScript support):
 
 ```bash
 node --test tests/*.test.mjs
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p '*_test.py'
 ```
 
+Installer tests cover source/destination identity, failed copies, missing sources, and repeated copy/symlink installation. Subagent tests use fake CLI processes: no model requests or cloud operations.
 Firebase tests check persona/skill wiring, MCP preset, catalogs, and routing documentation.
+Selection-mechanism tests do not evaluate model routing accuracy. `tests/routing-evaluation.json` provides separate model-routing cases: in a fresh `/agent auto` session with current SYSTEM.md, request only persona selection for each prompt (no implementation or remote actions), then compare first `selectAgent` argument with `expectedAgent`. Record model/version and mismatches. This model evaluation is not part of deterministic unit tests.
 Core selection tests use isolated agent fixtures. With Pi installed, integration test also
 loads both extensions through Pi's real loader and renders custom footer.
 Set `PI_EXTENSION_LOADER` to override loader discovery.
@@ -209,6 +215,8 @@ Symlinks repository files directly into target directories for active editing:
 ./agents-setup.py --symlink
 ./pi-extensions-setup.py --symlink
 ```
+
+Installer stages sources before replacement and restores prior destinations if replacement fails. Same-file sources are skipped safely. Helper scripts are repository-owned files recovered from Git history, not links into one user's installation. `pi-config/` presets still require manual merging.
 
 ### Script Options
 

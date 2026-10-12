@@ -21,6 +21,7 @@ Auto selections apply only to this task; manual /agent selections stay pinned.`;
 
 async function loadAgent(agentName: string): Promise<AgentMeta | null> {
   try {
+    if (!/^[a-z0-9][a-z0-9_-]*$/.test(agentName)) return null;
     let path = join(agentsDir, `${agentName}.md`);
     let content = "";
     try {
@@ -33,9 +34,15 @@ async function loadAgent(agentName: string): Promise<AgentMeta | null> {
     let description = agentName;
     if (path.endsWith(".json")) {
       const parsed = JSON.parse(content);
-      description = parsed.description || parsed.name || agentName;
-      content = parsed.instructions || content;
+      if (parsed.name !== agentName || typeof parsed.description !== "string" || !parsed.description.trim() || typeof parsed.instructions !== "string" || !parsed.instructions.trim()) return null;
+      description = parsed.description;
+      content = parsed.instructions;
     } else {
+      const frontmatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+      if (!frontmatter) return null;
+      const name = frontmatter[1].match(/^name:\s*([a-z0-9_-]+)\s*$/m)?.[1];
+      const desc = frontmatter[1].match(/^description:\s*(.+)$/m)?.[1]?.trim();
+      if (name !== agentName || !desc) return null;
       const match = content.match(/^#\s+(.+)/m);
       if (match) description = match[1];
     }

@@ -1,9 +1,9 @@
 # Agents
 
-This folder contains the agent personas used by the Copilot CLI workspace.
+This folder contains the agent personas used by the Pi coding assistant.
 
 ## How to use them
-- Pick the agent that matches the task domain.
+- Pick agent by action first, then domain; use exact filename stem.
 - Each agent is a role description plus the tools and rules it should follow.
 - Most agents expect you to activate a matching skill first.
 

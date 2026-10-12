@@ -1,0 +1,16 @@
+[
+  {"prompt":"Review Flutter pull request", "expectedAgent":"dart-senior-reviewer"},
+  {"prompt":"Write Flutter widget tests", "expectedAgent":"flutter-qa-specialist"},
+  {"prompt":"Design a Flutter login screen", "expectedAgent":"ui-ux-designer"},
+  {"prompt":"Implement designed login screen in Flutter", "expectedAgent":"flutter-senior-developer"},
+  {"prompt":"Implement Firestore Security Rules and indexes", "expectedAgent":"firebase-agent"},
+  {"prompt":"Review Firebase Security Rules", "expectedAgent":"dart-senior-reviewer"},
+  {"prompt":"Research Firebase Authentication providers", "expectedAgent":"researcher"},
+  {"prompt":"Implement Firebase login UI in Flutter", "expectedAgent":"flutter-senior-developer"},
+  {"prompt":"Deploy Firebase Hosting to an approved staging project", "expectedAgent":"firebase-agent"},
+  {"prompt":"Implement an Astro marketing website", "expectedAgent":"web-senior-developer"},
+  {"prompt":"Implement a Next.js dashboard", "expectedAgent":"web-senior-developer"},
+  {"prompt":"Create a Dart Frog endpoint", "expectedAgent":"dartfrog-senior-developer"},
+  {"prompt":"Dockerize API and add GitHub Actions", "expectedAgent":"devops-specialist"},
+  {"prompt":"Plan feature requirements", "expectedAgent":"spec-specialist"}
+]

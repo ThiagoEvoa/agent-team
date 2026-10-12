@@ -77,6 +77,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
    `brainstorm/strategy/edge-case discussion` → Rubber Duck
    `multi-agent workflow/orchestration` → Orchestrator
    `Flutter/mobile implementation/widget code` → Flutter Senior Developer
+   `Astro/Next.js/web implementation` → Web Senior Developer
 3. Use domain terms only as tie-breakers. Never route from generic words alone.
 4. If request contains multiple independent tasks, choose primary for first blocking task; list supporting agents.
 5. If no agent matches, or top candidates remain ambiguous, ask one concise clarification question. Do not guess or route to unrelated agent.
@@ -90,6 +91,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - Lottie/dotLottie asset creation, editing, export, or optimization → Lottie Agent. App integration stays with Flutter/Web developer; research, review, and QA remain action-first. Generic animation/UI design alone does not imply Lottie.
 - `design`, `Figma`, `UX`, visual requirements → UI/UX Designer; implementation afterward → Flutter/Web developer as support.
 - `Flutter`, `widget`, `screen`, `feature implementation` → Flutter Senior Developer only when building/changing code.
+- Astro/Next.js/web feature implementation → Web Senior Developer. Generic frontend work requires platform context; UI/UX design, research, review, and QA remain action-first.
 - Firebase service configuration, Security Rules, indexes, Cloud Functions, and Firebase-specific resource operations/deployment → Firebase Agent. Flutter/web SDK consumption stays with platform developer; general CI/CD/infrastructure stays with DevOps. Research/review/QA remain action-first; mentioning Firebase alone is insufficient.
 - `API`, `endpoint`, `route`, `middleware` → Dart Frog Senior Developer only with backend/server context.
 - `deployment`, `Docker`, `Kubernetes`, `GitHub Actions`, CI/CD → DevOps Specialist.
@@ -99,20 +101,21 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 
 ### Agent files
 
-- Researcher: `/Users/thiagoevoa/.agents/agents/researcher.md`
-- Dart Senior Reviewer: `/Users/thiagoevoa/.agents/agents/dart-senior-reviewer.md`
-- Dart Frog Senior Developer: `/Users/thiagoevoa/.agents/agents/dartfrog-senior-developer.md`
-- Firebase Agent: `/Users/thiagoevoa/.agents/agents/firebase-agent.md`
-- DevOps Specialist: `/Users/thiagoevoa/.agents/agents/devops-specialist.md`
-- Flutter QA Specialist: `/Users/thiagoevoa/.agents/agents/flutter-qa-specialist.md`
-- Flutter Senior Developer: `/Users/thiagoevoa/.agents/agents/flutter-senior-developer.md`
-- Rubber Duck: `/Users/thiagoevoa/.agents/agents/rubber-duck.md`
-- Spec Specialist: `/Users/thiagoevoa/.agents/agents/spec-specialist.md`
-- Orchestrator: `/Users/thiagoevoa/.agents/agents/orchestrator.md`
-- Senior Architect: `/Users/thiagoevoa/.agents/agents/senior-architect.md`
-- Product Owner: `/Users/thiagoevoa/.agents/agents/product-owner.md`
-- UI/UX Designer: `/Users/thiagoevoa/.agents/agents/ui-ux-designer.md`
-- Lottie Agent: `/Users/thiagoevoa/.agents/agents/lottie-agent.md`
+- Researcher: `~/.agents/agents/researcher.md`
+- Dart Senior Reviewer: `~/.agents/agents/dart-senior-reviewer.md`
+- Dart Frog Senior Developer: `~/.agents/agents/dartfrog-senior-developer.md`
+- Web Senior Developer: `~/.agents/agents/web-senior-developer.md`
+- Firebase Agent: `~/.agents/agents/firebase-agent.md`
+- DevOps Specialist: `~/.agents/agents/devops-specialist.md`
+- Flutter QA Specialist: `~/.agents/agents/flutter-qa-specialist.md`
+- Flutter Senior Developer: `~/.agents/agents/flutter-senior-developer.md`
+- Rubber Duck: `~/.agents/agents/rubber-duck.md`
+- Spec Specialist: `~/.agents/agents/spec-specialist.md`
+- Orchestrator: `~/.agents/agents/orchestrator.md`
+- Senior Architect: `~/.agents/agents/senior-architect.md`
+- Product Owner: `~/.agents/agents/product-owner.md`
+- UI/UX Designer: `~/.agents/agents/ui-ux-designer.md`
+- Lottie Agent: `~/.agents/agents/lottie-agent.md`
 
 ### Selection examples
 
@@ -127,7 +130,13 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - `Implement Firebase login UI in Flutter` → Flutter Senior Developer; Firebase Agent support for service configuration.
 - `Review Firebase Security Rules` → Dart Senior Reviewer.
 - `Research Firebase Authentication providers` → Researcher.
+- `Implement an Astro marketing website` → Web Senior Developer.
+- `Implement a Next.js dashboard` → Web Senior Developer.
 - `Create Dart Frog endpoint` → Dart Frog Senior Developer.
 - `Dockerize API and add GitHub Actions` → DevOps Specialist; Dart Frog support.
 - `Research OAuth provider options` → Researcher.
 - `Plan feature requirements` → Spec Specialist; no UI/UX selection from `design` unless visual design is requested.
+
+### Subagent delegation
+
+Choose child persona semantically, then pass exact filename stem as required `agent` to `spawnSubagent`. No keyword inference. Missing or invalid personas fail before child launch.

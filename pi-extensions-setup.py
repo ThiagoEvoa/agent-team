@@ -17,6 +17,7 @@ import getpass
 import os
 import shutil
 import sys
+import tempfile
 from typing import Optional
 from pathlib import Path
 
@@ -55,27 +56,35 @@ def resolve_user_home(username: Optional[str]) -> Path:
 
 
 def link_or_copy(src_path: Path, dest_path: Path, use_symlinks: bool = False, force: bool = True) -> bool:
+    """Validate and stage before replacing an extension; preserve installed files on failure."""
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    if dest_path.exists() or dest_path.is_symlink():
-        if force:
-            if dest_path.is_dir() and not dest_path.is_symlink():
-                shutil.rmtree(dest_path)
-            else:
-                dest_path.unlink()
-        else:
-            print(f"⚠️  Skipping {dest_path.name}: already exists (use --force to overwrite)")
-            return True
-
     try:
-        if use_symlinks:
-            dest_path.symlink_to(src_path.resolve())
-            print(f"🔗 Linked: {src_path} -> {dest_path}")
-        else:
-            shutil.copy2(src_path, dest_path)
-            print(f"📋 Copied: {src_path} -> {dest_path}")
+        source = src_path.resolve(strict=True)
+        if dest_path.exists() and os.path.samefile(source, dest_path):
+            print(f"⏭️ Already wired: {dest_path}")
+            return True
+        if (dest_path.exists() or dest_path.is_symlink()) and not force:
+            print(f"⚠️ Skipping {dest_path}: already exists")
+            return True
+        with tempfile.TemporaryDirectory(prefix=".extension-setup-", dir=dest_path.parent) as tmp:
+            staged, backup = Path(tmp) / "new", Path(tmp) / "old"
+            if use_symlinks:
+                staged.symlink_to(source)
+            else:
+                shutil.copy2(source, staged)
+            had_target = dest_path.exists() or dest_path.is_symlink()
+            if had_target:
+                dest_path.rename(backup)
+            try:
+                staged.rename(dest_path)
+            except Exception:
+                if had_target:
+                    backup.rename(dest_path)
+                raise
+        print(f"{'🔗 Linked' if use_symlinks else '📋 Copied'}: {src_path} -> {dest_path}")
         return True
-    except Exception as e:
-        print(f"❌ Failed placing {src_path} -> {dest_path}: {e}", file=sys.stderr)
+    except Exception as error:
+        print(f"❌ Failed placing {src_path} -> {dest_path}: {error}", file=sys.stderr)
         return False
 
 

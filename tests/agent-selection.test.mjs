@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test, after } from 'node:test';
-import { mkdtempSync, mkdirSync, copyFileSync, rmSync, realpathSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, readFileSync, rmSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -10,9 +10,11 @@ const home = mkdtempSync(join(tmpdir(), 'agent-selection-test-'));
 const oldHome = process.env.HOME;
 process.env.HOME = home;
 mkdirSync(join(home, '.agents', 'agents'), { recursive: true });
-for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent']) {
+for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent', 'web-senior-developer']) {
   copyFileSync(new URL(`../agents/${name}.md`, import.meta.url), join(home, '.agents', 'agents', `${name}.md`));
 }
+copyFileSync(new URL('../agents/README.md', import.meta.url), join(home, '.agents', 'agents', 'README.md'));
+writeFileSync(join(home, '.agents/agents/invalid.md'), '---\nname: wrong-name\ndescription: Invalid persona\n---\n# Invalid\n');
 const { default: init } = await import('../extension/agent-switcher/agent-switcher.ts');
 after(() => {
   if (oldHome === undefined) delete process.env.HOME; else process.env.HOME = oldHome;
@@ -35,7 +37,7 @@ function harness() {
   };
 }
 
-test('semantic selection loads instructions and updates status during task and after completion', async () => {
+test('explicit selection loads instructions and updates status during task and after completion', async () => {
   const h = harness();
   await h.emit('session_start');
   const start = await h.begin('Review Flutter code');
@@ -52,12 +54,13 @@ test('semantic selection loads instructions and updates status during task and a
   assert.doesNotMatch(next.systemPrompt, /## Active Agent: dart-senior-reviewer/);
 });
 
-test('selection handles action/domain overlap without keyword guessing', async () => {
+test('explicit persona selection supports representative action/domain cases', async () => {
   for (const [prompt, agent] of [
     ['Review Flutter code', 'dart-senior-reviewer'],
     ['Write Flutter widget tests', 'flutter-qa-specialist'],
     ['Design a Flutter login screen', 'ui-ux-designer'],
     ['Implement designed login screen in Flutter', 'flutter-senior-developer'],
+    ['Implement an Astro marketing website', 'web-senior-developer'],
     ['Implement Firestore Security Rules and indexes', 'firebase-agent'],
     ['Review Firebase Security Rules', 'dart-senior-reviewer'],
     ['Research Firebase Authentication providers', 'researcher'],
@@ -93,7 +96,7 @@ test('invalid names and path traversal leave selected status intact', async () =
   await h.emit('session_start');
   await h.begin('Task');
   await h.select('researcher');
-  for (const name of ['missing-agent', '../extension/agent-switcher', '', 'research']) {
+  for (const name of ['missing-agent', '../extension/agent-switcher', '', 'research', 'README', 'invalid']) {
     const result = await h.select(name);
     assert.equal(result.details.ok, false);
     assert.match(h.statuses.get('agent'), /researcher/);
@@ -120,9 +123,10 @@ try {
 
 test('real Pi loader: footer follows selection, completion, manual changes, and reset', { skip: !loaderUrl && 'Pi not installed; set PI_EXTENSION_LOADER' }, async () => {
   const { loadExtensions } = await import(loaderUrl.href);
-  const paths = ['agent-switcher/agent-switcher.ts', 'custom-tui/custom-tui.ts'].map(name => fileURLToPath(new URL(`../extension/${name}`, import.meta.url)));
+  const paths = ['agent-switcher/agent-switcher.ts', 'custom-tui/custom-tui.ts', 'subagent-spawner/subagent-spawner.ts'].map(name => fileURLToPath(new URL(`../extension/${name}`, import.meta.url)));
   const loaded = await loadExtensions(paths, fileURLToPath(new URL('..', import.meta.url)));
   assert.deepEqual(loaded.errors, []);
+  assert.ok(loaded.extensions[2].tools.has('spawnSubagent'));
   const statuses = new Map();
   let footer, renders = 0;
   const tui = { requestRender() { renders++; } };
@@ -157,4 +161,15 @@ test('real Pi loader: footer follows selection, completion, manual changes, and 
   assert.match(footer.render(200)[0], /agent: none/);
   await emit('session_start');
   assert.match(footer.render(200)[0], /agent: none/);
+});
+
+// Dataset integrity only; actual model-routing accuracy is evaluated separately.
+test('routing evaluation cases reference installed personas and include web boundary cases', () => {
+  const cases = JSON.parse(readFileSync(new URL('./routing-evaluation.json', import.meta.url), 'utf8'));
+  for (const item of cases) {
+    assert.ok(item.prompt.trim());
+    assert.match(readFileSync(new URL(`../agents/${item.expectedAgent}.md`, import.meta.url), 'utf8'), /^---/);
+  }
+  assert.ok(cases.some(item => item.prompt.includes('Astro') && item.expectedAgent === 'web-senior-developer'));
+  assert.ok(cases.some(item => item.prompt.includes('Review Firebase') && item.expectedAgent === 'dart-senior-reviewer'));
 });

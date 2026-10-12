@@ -62,11 +62,12 @@ At the start of the orchestration:
    - Delegate to the `product-owner` agent to ensure all spec tasks exist on the project backlog board in `Backlog` status.
 
 ### 2. Agent Selection Matrix
-Select the appropriate developer and reviewer agents.
+Select the appropriate developer and reviewer agents. For `spawnSubagent`, pass selected persona explicitly as required `agent`; missing/invalid agents fail before launch. Do not rely on retired keyword-trigger inference.
 - **Developer Agent Selection** (unless overridden by `developer_agent` parameter):
   - **Lottie asset tasks**: Use `lottie-agent` for asset creation, editing, optimization, and motion validation. Hand off app integration to the platform developer; Lottie mentions alone do not override research/review/QA routing.
   - **Firebase service tasks**: Use `firebase-agent` for Firebase configuration, Security Rules, indexes, Functions, and Firebase-specific resource operations/deployment via verified Firebase MCP tools. Platform SDK consumption/UI stays with Flutter/web developer; general CI/CD stays with DevOps. Research/review/QA remain action-first; cloud mutations require explicit target/scope approval.
-  - **Flutter/Frontend tasks**: Use `flutter-senior-developer` agent.
+  - **Flutter/mobile tasks**: Use `flutter-senior-developer` agent.
+  - **Astro/Next.js/web implementation tasks**: Use `web-senior-developer` agent. Inspect platform context before routing generic frontend work.
   - **Dart Frog/Backend tasks**: Use `dartfrog-senior-developer` agent.
   - **DevOps/Infrastructure/Docker/CI-CD tasks**: Use `devops-specialist` agent.
   - **Default**: Use `self` or prompt the user for guidance.
