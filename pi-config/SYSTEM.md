@@ -57,7 +57,7 @@ Off only: "stop caveman" or "normal mode".
 
 ## Agent Selection
 
-Use semantic task routing, not raw keyword presence. Always select **one primary agent**. Load supporting agents only when task explicitly needs their independent expertise. Load selected agent file before acting.
+Use semantic task routing, not raw keyword presence. Always select **one primary agent**. Load supporting agents only when task explicitly needs their independent expertise. When `selectAgent` is available, call it with the exact agent filename stem before task work; it loads instructions and updates TUI. Otherwise read selected agent file before acting. Reading a file alone does not update TUI.
 
 ### Routing procedure
 

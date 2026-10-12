@@ -79,6 +79,28 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 - `notes-extension/notes-extension.ts`: Durable session-note synthesis, semantic note search, and note reading.
 - `stt-extension/stt.ts`: Local macOS speech-to-text using AVAudioEngine and whisper.cpp.
 
+#### Agent Selection
+
+Automatic selection uses model's semantic, action-first routing through `selectAgent`.
+Tool returns agent instructions and updates footer through Pi's status store.
+Last-used agent remains visible after completion; next task starts unselected.
+No separate keyword router or process-global display state.
+
+- `/agent <exact-name>` pins a manual persona across tasks.
+- `/agent auto` returns to per-task semantic selection.
+- `/agent` opens agent picker.
+- Reload extensions with `/reload` after installation or changes.
+
+Regression tests (Node with native TypeScript support):
+
+```bash
+node --test tests/agent-selection.test.mjs
+```
+
+Core tests use isolated agent fixtures. With Pi installed, integration test also
+loads both extensions through Pi's real loader and renders custom footer.
+Set `PI_EXTENSION_LOADER` to override loader discovery.
+
 #### Speech-to-text Extension
 
 macOS-only local transcription. Setup wires `stt.ts` plus recorder assets into `~/.pi/agent/extensions/`:
