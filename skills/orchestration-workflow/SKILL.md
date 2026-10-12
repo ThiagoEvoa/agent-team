@@ -65,6 +65,7 @@ At the start of the orchestration:
 Select the appropriate developer and reviewer agents.
 - **Developer Agent Selection** (unless overridden by `developer_agent` parameter):
   - **Lottie asset tasks**: Use `lottie-agent` for asset creation, editing, optimization, and motion validation. Hand off app integration to the platform developer; Lottie mentions alone do not override research/review/QA routing.
+  - **Firebase service tasks**: Use `firebase-agent` for Firebase configuration, Security Rules, indexes, Functions, and Firebase-specific resource operations/deployment via verified Firebase MCP tools. Platform SDK consumption/UI stays with Flutter/web developer; general CI/CD stays with DevOps. Research/review/QA remain action-first; cloud mutations require explicit target/scope approval.
   - **Flutter/Frontend tasks**: Use `flutter-senior-developer` agent.
   - **Dart Frog/Backend tasks**: Use `dartfrog-senior-developer` agent.
   - **DevOps/Infrastructure/Docker/CI-CD tasks**: Use `devops-specialist` agent.

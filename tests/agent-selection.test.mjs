@@ -10,7 +10,7 @@ const home = mkdtempSync(join(tmpdir(), 'agent-selection-test-'));
 const oldHome = process.env.HOME;
 process.env.HOME = home;
 mkdirSync(join(home, '.agents', 'agents'), { recursive: true });
-for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer']) {
+for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent']) {
   copyFileSync(new URL(`../agents/${name}.md`, import.meta.url), join(home, '.agents', 'agents', `${name}.md`));
 }
 const { default: init } = await import('../extension/agent-switcher/agent-switcher.ts');
@@ -58,6 +58,10 @@ test('selection handles action/domain overlap without keyword guessing', async (
     ['Write Flutter widget tests', 'flutter-qa-specialist'],
     ['Design a Flutter login screen', 'ui-ux-designer'],
     ['Implement designed login screen in Flutter', 'flutter-senior-developer'],
+    ['Implement Firestore Security Rules and indexes', 'firebase-agent'],
+    ['Review Firebase Security Rules', 'dart-senior-reviewer'],
+    ['Research Firebase Authentication providers', 'researcher'],
+    ['Implement Firebase login UI in Flutter', 'flutter-senior-developer'],
   ]) {
     const h = harness();
     await h.emit('session_start');

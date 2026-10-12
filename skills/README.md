@@ -17,6 +17,7 @@ This folder contains the workflow guides that agents activate before doing work.
 | `product-owner-workflow` | Governs backlog and board management | `product-owner` |
 | `flutter-senior-workflow` | Flutter implementation standards and workflow | `flutter-senior-developer` |
 | `web-senior-workflow` | Astro and Next.js implementation standards and workflow | `web-senior-developer` |
+| `firebase-workflow` | Firebase MCP operations, secure configuration, emulator validation, and authorized deployment | `firebase-agent` |
 | `dartfrog-senior-workflow` | Dart Frog backend implementation standards | `dartfrog-senior-developer` |
 | `dart-senior-reviewer-workflow` | Two-axis review methodology and review output | `dart-senior-reviewer` |
 | `flutter-qa-consultant` | UI testing workflow with Dart MCP tooling | `flutter-qa-specialist` |

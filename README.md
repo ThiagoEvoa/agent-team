@@ -31,6 +31,7 @@ Markdown specifications defining agent persona, constraints, and tool access:
 | `spec-specialist.md` | Requirements discovery, specs, and execution checklists | Spec-Driven Development (SDD) |
 | `product-owner.md` | Backlog grooming and GitHub Projects (v2) board transitions | Task & board lifecycle |
 | `flutter-senior-developer.md` | Dart MCP & workspace-driven Flutter development | Frontend mobile applications |
+| `firebase-agent.md` | Firebase MCP-driven configuration, rules, Functions, and operations | Firebase services and backend resources |
 | `dartfrog-senior-developer.md` | Dart Frog backend development, routing, and middleware | Backend API services |
 | `dart-senior-reviewer.md` | Two-axis architectural, quality, and security audits | Strict PR and code reviews |
 | `senior-architect.md` | High-leverage module design, ADRs, codebase refactors | System architecture |
@@ -49,6 +50,7 @@ Structured procedural playbooks and templates loaded by agents:
 - `domain-modeling`: Ubiquitous domain language, bounded contexts, ADRs.
 - `product-owner-workflow`: GitHub Projects tracking and issue synchronization.
 - `flutter-senior-workflow`: Flutter code standards, workspace templates, and validation.
+- `firebase-workflow`: Firebase MCP discovery, target verification, secure implementation, emulator validation, and authorized operations.
 - `dartfrog-senior-workflow`: Backend route structure and middleware patterns.
 - `dart-senior-reviewer-workflow`: Review standards, Fowler smells, two-axis reports.
 - `flutter-qa-consultant`: Dart MCP test runners and UI interaction flows.
@@ -59,6 +61,28 @@ Structured procedural playbooks and templates loaded by agents:
 - `codebase-design`: Architectural principles for deep module design.
 - `improve-codebase-architecture`: Shallow module discovery and refactor reports.
 - `diagnosing-bugs`: 6-phase systematic debugging and resolution loop.
+
+#### Firebase MCP
+
+`firebase-agent` activates `firebase-workflow` and discovers available Firebase MCP tools at runtime. `pi-config/mcp.json` includes official stdio server preset:
+
+```json
+"firebase": {
+  "command": "npx",
+  "args": ["-y", "firebase-tools@latest", "mcp"]
+}
+```
+
+Requires compatible Node.js/npm and authorized Firebase CLI credentials (user login or Application Default Credentials). Merge preset into MCP adapter's active configuration; setup scripts do not install MCP servers or copy `pi-config/` presets. Restart/reload MCP connection, then verify tool discovery and project/account context. Never store credentials in repository.
+
+Optional `--dir /absolute/project/path` sets workspace context; `--only auth,firestore,storage` limits feature groups. Pin reviewed CLI version for reproducible environments. Local server can access cloud resources: running emulators does not guarantee MCP calls are local.
+
+- Firebase service configuration, rules, indexes, Functions, and Firebase-specific operations → `firebase-agent`.
+- Flutter/web SDK consumption and UI → platform developer, Firebase support as needed.
+- General CI/CD/infrastructure → `devops-specialist`; research/review/QA remain action-first.
+- Cloud mutations and deployment require explicit target/scope authorization.
+
+See [Firebase workflow](skills/firebase-workflow/SKILL.md) and [official MCP documentation](https://firebase.google.com/docs/ai-assistance/mcp-server).
 
 ### 3. Helper Scripts (`scripts/`)
 Token-efficient automation utilities executed by agents and workflows:
@@ -94,10 +118,11 @@ No separate keyword router or process-global display state.
 Regression tests (Node with native TypeScript support):
 
 ```bash
-node --test tests/agent-selection.test.mjs
+node --test tests/*.test.mjs
 ```
 
-Core tests use isolated agent fixtures. With Pi installed, integration test also
+Firebase tests check persona/skill wiring, MCP preset, catalogs, and routing documentation.
+Core selection tests use isolated agent fixtures. With Pi installed, integration test also
 loads both extensions through Pi's real loader and renders custom footer.
 Set `PI_EXTENSION_LOADER` to override loader discovery.
 

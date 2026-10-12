@@ -1,5 +1,9 @@
 {
   "mcpServers": {
+    "firebase": {
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "mcp"]
+    },
     "dart-mcp-server": {
       "command": "dart",
       "args": [

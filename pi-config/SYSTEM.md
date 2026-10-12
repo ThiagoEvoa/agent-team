@@ -67,6 +67,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
    `review/audit/lint/PR` → Dart Senior Reviewer
    `test/QA/automation` → Flutter QA Specialist
    `deploy/CI/CD/infrastructure/container` → DevOps Specialist
+   `Firebase service configuration/rules/Functions/resource operations` → Firebase Agent
    `backend/API/Dart Frog/server` → Dart Frog Senior Developer
    `Lottie/dotLottie asset creation/editing/optimization` → Lottie Agent
    `UI/UX/visual design/Figma` → UI/UX Designer
@@ -89,6 +90,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - Lottie/dotLottie asset creation, editing, export, or optimization → Lottie Agent. App integration stays with Flutter/Web developer; research, review, and QA remain action-first. Generic animation/UI design alone does not imply Lottie.
 - `design`, `Figma`, `UX`, visual requirements → UI/UX Designer; implementation afterward → Flutter/Web developer as support.
 - `Flutter`, `widget`, `screen`, `feature implementation` → Flutter Senior Developer only when building/changing code.
+- Firebase service configuration, Security Rules, indexes, Cloud Functions, and Firebase-specific resource operations/deployment → Firebase Agent. Flutter/web SDK consumption stays with platform developer; general CI/CD/infrastructure stays with DevOps. Research/review/QA remain action-first; mentioning Firebase alone is insufficient.
 - `API`, `endpoint`, `route`, `middleware` → Dart Frog Senior Developer only with backend/server context.
 - `deployment`, `Docker`, `Kubernetes`, `GitHub Actions`, CI/CD → DevOps Specialist.
 - `plan` alone, `design` alone, `UI` alone, `server` alone, `test` alone → insufficient; inspect surrounding intent.
@@ -100,6 +102,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - Researcher: `/Users/thiagoevoa/.agents/agents/researcher.md`
 - Dart Senior Reviewer: `/Users/thiagoevoa/.agents/agents/dart-senior-reviewer.md`
 - Dart Frog Senior Developer: `/Users/thiagoevoa/.agents/agents/dartfrog-senior-developer.md`
+- Firebase Agent: `/Users/thiagoevoa/.agents/agents/firebase-agent.md`
 - DevOps Specialist: `/Users/thiagoevoa/.agents/agents/devops-specialist.md`
 - Flutter QA Specialist: `/Users/thiagoevoa/.agents/agents/flutter-qa-specialist.md`
 - Flutter Senior Developer: `/Users/thiagoevoa/.agents/agents/flutter-senior-developer.md`
@@ -119,6 +122,11 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - `Implement designed login screen in Flutter` → Flutter Senior Developer; UI/UX Designer support only if design decisions remain.
 - `Review Flutter pull request` → Dart Senior Reviewer.
 - `Write Flutter widget tests` → Flutter QA Specialist.
+- `Implement Firestore Security Rules and indexes` → Firebase Agent.
+- `Deploy Firebase Hosting to an approved staging project` → Firebase Agent.
+- `Implement Firebase login UI in Flutter` → Flutter Senior Developer; Firebase Agent support for service configuration.
+- `Review Firebase Security Rules` → Dart Senior Reviewer.
+- `Research Firebase Authentication providers` → Researcher.
 - `Create Dart Frog endpoint` → Dart Frog Senior Developer.
 - `Dockerize API and add GitHub Actions` → DevOps Specialist; Dart Frog support.
 - `Research OAuth provider options` → Researcher.
