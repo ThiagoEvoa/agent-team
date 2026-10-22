@@ -13,21 +13,23 @@ This folder contains the workflow guides that agents activate before doing work.
 |---|---|---|
 | `orchestration-workflow` | Spec-driven coordination, delegation, and review loops | `orchestrator` |
 | `to-spec` | Turns ideas into structured technical specs | `spec-specialist` |
-| `domain-modeling` | Helps define glossary terms, boundaries, and ADRs | `spec-specialist`, `senior-architect` |
+| `domain-modeling` | Helps define glossary terms, boundaries, and ADRs | `spec-specialist`, `senior-architect`, `rust-senior-engineer` |
 | `product-owner-workflow` | Governs backlog and board management | `product-owner` |
 | `flutter-senior-workflow` | Flutter implementation standards and workflow | `flutter-senior-developer` |
 | `web-senior-workflow` | Astro and Next.js implementation standards and workflow | `web-senior-developer` |
 | `firebase-workflow` | Firebase MCP operations, secure configuration, emulator validation, and authorized deployment | `firebase-agent` |
 | `dartfrog-senior-workflow` | Dart Frog backend implementation standards | `dartfrog-senior-developer` |
+| `rust-senior-workflow` | Rust implementation, debugging, and validation | `rust-senior-engineer` |
+| `rust-senior-review-workflow` | Two-axis Rust code review | `rust-senior-engineer` |
 | `dart-senior-reviewer-workflow` | Two-axis review methodology and review output | `dart-senior-reviewer` |
 | `flutter-qa-consultant` | UI testing workflow with Dart MCP tooling | `flutter-qa-specialist` |
 | `devops-senior-workflow` | CI/CD, Docker, and infrastructure guidance | `devops-specialist` |
 | `research-workflow` | Rigorous research and source-backed answers | `researcher` |
 | `ui-ux-mobile-workflow` | Mobile design-system and UX guidance | `ui-ux-designer` |
 | `lottie-workflow` | Lottie asset planning, MCP creation, validation, and handoff | `lottie-agent` |
-| `codebase-design` | Architecture vocabulary and design heuristics | `senior-architect` |
-| `improve-codebase-architecture` | Deep architecture analysis and report generation | `senior-architect` |
-| `diagnosing-bugs` | Deterministic bug repro and triage workflow | most implementation and QA agents |
+| `codebase-design` | Architecture vocabulary and design heuristics | `senior-architect`, `rust-senior-engineer` |
+| `improve-codebase-architecture` | Deep architecture analysis and report generation | `senior-architect`, `rust-senior-engineer` |
+| `diagnosing-bugs` | Deterministic Dart/Flutter/Dart Frog bug repro and triage workflow | Dart/Flutter implementation and QA agents |
 
 ## Notes
 - Skills are reusable and can be shared across agents.

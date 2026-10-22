@@ -34,6 +34,7 @@ Markdown specifications defining agent persona, constraints, and tool access:
 | `firebase-agent.md` | Firebase MCP-driven configuration, rules, Functions, and operations | Firebase services and backend resources |
 | `web-senior-developer.md` | Astro and Next.js implementation with framework MCP guidance | Websites and interactive web products |
 | `dartfrog-senior-developer.md` | Dart Frog backend development, routing, and middleware | Backend API services |
+| `rust-senior-engineer.md` | Rust implementation, architecture, debugging, and two-axis review | Rust crates and Cargo workspaces |
 | `dart-senior-reviewer.md` | Two-axis architectural, quality, and security audits | Strict PR and code reviews |
 | `senior-architect.md` | High-leverage module design, ADRs, codebase refactors | System architecture |
 | `researcher.md` | Multi-source verification, web search, and evidence gathering | Fact retrieval without guessing |
@@ -54,6 +55,8 @@ Structured procedural playbooks and templates loaded by agents:
 - `firebase-workflow`: Firebase MCP discovery, target verification, secure implementation, emulator validation, and authorized operations.
 - `web-senior-workflow`: Astro/Next.js implementation, framework MCP guidance, and validation.
 - `dartfrog-senior-workflow`: Backend route structure and middleware patterns.
+- `rust-senior-workflow`: Rust implementation, debugging, and Cargo validation.
+- `rust-senior-review-workflow`: Two-axis Rust PR and code review.
 - `dart-senior-reviewer-workflow`: Review standards, Fowler smells, two-axis reports.
 - `flutter-qa-consultant`: Dart MCP test runners and UI interaction flows.
 - `devops-senior-workflow`: Docker multi-stage builds, Kubernetes manifests, and CI/CD.

@@ -64,14 +64,15 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 1. Parse request into `action`, `domain`, `artifact`, `constraints`.
 2. Select primary by action first, then domain:
    `research/verify` → Researcher
-   `review/audit/lint/PR` → Dart Senior Reviewer
-   `test/QA/automation` → Flutter QA Specialist
+   `review/audit/lint/PR` → Dart Senior Reviewer for Dart/Flutter; Rust Senior Engineer for Rust
+   `Flutter test/QA/automation` → Flutter QA Specialist; Rust test work → Rust Senior Engineer
    `deploy/CI/CD/infrastructure/container` → DevOps Specialist
    `Firebase service configuration/rules/Functions/resource operations` → Firebase Agent
-   `backend/API/Dart Frog/server` → Dart Frog Senior Developer
+   `Dart Frog backend/API/route/middleware` → Dart Frog Senior Developer
+   `Rust crate/Cargo workspace implementation or review` → Rust Senior Engineer
    `Lottie/dotLottie asset creation/editing/optimization` → Lottie Agent
    `UI/UX/visual design/Figma` → UI/UX Designer
-   `architecture/refactor/module design` → Senior Architect
+   `cross-cutting architecture/refactor/module design` → Senior Architect; Rust crate internals → Rust Senior Engineer
    `requirements/specification/scope/discovery` → Spec Specialist
    `backlog/project board/prioritization` → Product Owner
    `brainstorm/strategy/edge-case discussion` → Rubber Duck
@@ -86,14 +87,15 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 
 ### Strong signals
 
-- `review`, `audit`, `lint`, `PR` → Dart Senior Reviewer, even if code is Flutter/Dart.
-- `test`, `QA`, `integration test`, `widget test` → Flutter QA Specialist, even if implementation is requested.
+- `review`, `audit`, `lint`, `PR` → Dart Senior Reviewer for Flutter/Dart; Rust Senior Engineer for Rust.
+- Flutter `test`, `QA`, `integration test`, or `widget test` → Flutter QA Specialist, even if implementation is requested. Rust tests and Rust-specific QA → Rust Senior Engineer.
 - Lottie/dotLottie asset creation, editing, export, or optimization → Lottie Agent. App integration stays with Flutter/Web developer; research, review, and QA remain action-first. Generic animation/UI design alone does not imply Lottie.
 - `design`, `Figma`, `UX`, visual requirements → UI/UX Designer; implementation afterward → Flutter/Web developer as support.
 - `Flutter`, `widget`, `screen`, `feature implementation` → Flutter Senior Developer only when building/changing code.
 - Astro/Next.js/web feature implementation → Web Senior Developer. Generic frontend work requires platform context; UI/UX design, research, review, and QA remain action-first.
 - Firebase service configuration, Security Rules, indexes, Cloud Functions, and Firebase-specific resource operations/deployment → Firebase Agent. Flutter/web SDK consumption stays with platform developer; general CI/CD/infrastructure stays with DevOps. Research/review/QA remain action-first; mentioning Firebase alone is insufficient.
 - `API`, `endpoint`, `route`, `middleware` → Dart Frog Senior Developer only with backend/server context.
+- Rust crate, Cargo workspace, or Rust service implementation/review → Rust Senior Engineer. Route by Rust project context, not the word `rust` alone.
 - `deployment`, `Docker`, `Kubernetes`, `GitHub Actions`, CI/CD → DevOps Specialist.
 - `plan` alone, `design` alone, `UI` alone, `server` alone, `test` alone → insufficient; inspect surrounding intent.
 - Product Owner is never default/fallback. Use only for explicit GitHub Projects, backlog, issue management, prioritization, or board-state requests. Generic planning, design, organization, or build questions do not qualify.
@@ -104,6 +106,7 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - Researcher: `~/.agents/agents/researcher.md`
 - Dart Senior Reviewer: `~/.agents/agents/dart-senior-reviewer.md`
 - Dart Frog Senior Developer: `~/.agents/agents/dartfrog-senior-developer.md`
+- Rust Senior Engineer: `~/.agents/agents/rust-senior-engineer.md`
 - Web Senior Developer: `~/.agents/agents/web-senior-developer.md`
 - Firebase Agent: `~/.agents/agents/firebase-agent.md`
 - DevOps Specialist: `~/.agents/agents/devops-specialist.md`
@@ -133,6 +136,8 @@ Use semantic task routing, not raw keyword presence. Always select **one primary
 - `Implement an Astro marketing website` → Web Senior Developer.
 - `Implement a Next.js dashboard` → Web Senior Developer.
 - `Create Dart Frog endpoint` → Dart Frog Senior Developer.
+- `Implement a Rust CLI command` → Rust Senior Engineer.
+- `Review a Rust crate pull request` → Rust Senior Engineer.
 - `Dockerize API and add GitHub Actions` → DevOps Specialist; Dart Frog support.
 - `Research OAuth provider options` → Researcher.
 - `Plan feature requirements` → Spec Specialist; no UI/UX selection from `design` unless visual design is requested.

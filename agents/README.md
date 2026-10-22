@@ -18,6 +18,7 @@ This folder contains the agent personas used by the Pi coding assistant.
 | `web-senior-developer` | Implements Astro and Next.js web features | Public websites and interactive products |
 | `firebase-agent` | Configures Firebase services and secure backend resources with Firebase MCP | Rules, indexes, Functions, Firebase-specific operations |
 | `dartfrog-senior-developer` | Implements Dart Frog backend work | APIs, routes, middleware, backend logic |
+| `rust-senior-engineer` | Implements and reviews Rust systems | Crates, Cargo workspaces, Rust architecture and PRs |
 | `dart-senior-reviewer` | Reviews code with standards/spec checks | PR review and code quality audits |
 | `senior-architect` | Reviews system structure and refactor direction | Architecture, module design, ADRs |
 | `researcher` | Finds and verifies facts from code or the web | Research-heavy tasks and evidence gathering |

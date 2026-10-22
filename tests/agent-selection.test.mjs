@@ -10,7 +10,7 @@ const home = mkdtempSync(join(tmpdir(), 'agent-selection-test-'));
 const oldHome = process.env.HOME;
 process.env.HOME = home;
 mkdirSync(join(home, '.agents', 'agents'), { recursive: true });
-for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent', 'web-senior-developer']) {
+for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent', 'web-senior-developer', 'rust-senior-engineer']) {
   copyFileSync(new URL(`../agents/${name}.md`, import.meta.url), join(home, '.agents', 'agents', `${name}.md`));
 }
 copyFileSync(new URL('../agents/README.md', import.meta.url), join(home, '.agents', 'agents', 'README.md'));
@@ -63,6 +63,9 @@ test('explicit persona selection supports representative action/domain cases', a
     ['Implement an Astro marketing website', 'web-senior-developer'],
     ['Implement Firestore Security Rules and indexes', 'firebase-agent'],
     ['Review Firebase Security Rules', 'dart-senior-reviewer'],
+    ['Implement a Rust CLI command', 'rust-senior-engineer'],
+    ['Review a Rust crate pull request', 'rust-senior-engineer'],
+    ['Add Rust integration tests', 'rust-senior-engineer'],
     ['Research Firebase Authentication providers', 'researcher'],
     ['Implement Firebase login UI in Flutter', 'flutter-senior-developer'],
   ]) {
@@ -164,7 +167,7 @@ test('real Pi loader: footer follows selection, completion, manual changes, and 
 });
 
 // Dataset integrity only; actual model-routing accuracy is evaluated separately.
-test('routing evaluation cases reference installed personas and include web boundary cases', () => {
+test('routing evaluation cases reference installed personas and include web and Rust boundary cases', () => {
   const cases = JSON.parse(readFileSync(new URL('./routing-evaluation.json', import.meta.url), 'utf8'));
   for (const item of cases) {
     assert.ok(item.prompt.trim());
@@ -172,4 +175,5 @@ test('routing evaluation cases reference installed personas and include web boun
   }
   assert.ok(cases.some(item => item.prompt.includes('Astro') && item.expectedAgent === 'web-senior-developer'));
   assert.ok(cases.some(item => item.prompt.includes('Review Firebase') && item.expectedAgent === 'dart-senior-reviewer'));
+  assert.ok(cases.some(item => item.prompt.includes('Rust crate pull request') && item.expectedAgent === 'rust-senior-engineer'));
 });

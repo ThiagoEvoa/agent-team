@@ -11,6 +11,9 @@
   {"prompt":"Implement an Astro marketing website", "expectedAgent":"web-senior-developer"},
   {"prompt":"Implement a Next.js dashboard", "expectedAgent":"web-senior-developer"},
   {"prompt":"Create a Dart Frog endpoint", "expectedAgent":"dartfrog-senior-developer"},
+  {"prompt":"Implement a Rust CLI command in an existing Cargo workspace", "expectedAgent":"rust-senior-engineer"},
+  {"prompt":"Review a Rust crate pull request for correctness and spec fidelity", "expectedAgent":"rust-senior-engineer"},
+  {"prompt":"Add Rust integration tests to a Cargo workspace", "expectedAgent":"rust-senior-engineer"},
   {"prompt":"Dockerize API and add GitHub Actions", "expectedAgent":"devops-specialist"},
   {"prompt":"Plan feature requirements", "expectedAgent":"spec-specialist"}
 ]
