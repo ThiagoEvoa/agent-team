@@ -26,6 +26,7 @@ EXTENSION_FILES = {
     "agent-switcher": [("extension/agent-switcher/agent-switcher.ts", "agent-switcher.ts")],
     "subagent-spawner": [("extension/subagent-spawner/subagent-spawner.ts", "subagent-spawner.ts")],
     "notes": [("extension/notes-extension/notes-extension.ts", "notes-extension.ts")],
+    "pdf-img-ocr": [("extension/pdf-img-ocr/pdf-img-ocr.ts", "pdf-img-ocr.ts")],
     # STT runtime assets stay together because stt.ts resolves the recorder here.
     "stt": [
         ("extension/stt-extension/stt.ts", "stt.ts"),

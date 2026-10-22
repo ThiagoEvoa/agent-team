@@ -104,6 +104,7 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 - `subagent-spawner/subagent-spawner.ts`: Isolated subagent delegation and execution management.
 - `notes-extension/notes-extension.ts`: Durable session-note synthesis, semantic note search, and note reading.
 - `stt-extension/stt.ts`: Local macOS speech-to-text using AVAudioEngine and whisper.cpp.
+- `pdf-img-ocr/pdf-img-ocr.ts`: PNG, JPEG, and PDF OCR through Pi's selected Ollama vision model.
 
 #### Agent Selection
 
@@ -131,6 +132,19 @@ Selection-mechanism tests do not evaluate model routing accuracy. `tests/routing
 Core selection tests use isolated agent fixtures. With Pi installed, integration test also
 loads both extensions through Pi's real loader and renders custom footer.
 Set `PI_EXTENSION_LOADER` to override loader discovery.
+
+#### PDF and image OCR extension
+
+Install Poppler, then select an image-capable Ollama model in Pi. The selected model must be installed on the Ollama server:
+
+```bash
+brew install poppler
+./pi-extensions-setup.py --extensions pdf-img-ocr
+```
+
+In Pi, use `/ocr ./image.png` or `/ocr ./document.pdf`; the agent can also call the `ocr` tool with a local path. The extension uses Pi's currently selected Ollama model ID and its configured server address, including tagged IDs such as `glm-ocr:bf16`. PDFs are rendered at 200 DPI and OCRed one page at a time. Long results are saved in a private temporary text file, and Pi receives its path and a preview.
+
+Use `/ocr-url http://192.168.1.20:11434` only if OCR should use a different Ollama address from the selected Pi model. A Pi model URL ending in `/v1` is accepted; the extension removes `/v1` because OCR uses Ollama's native `/api` endpoints. `/ocr-url` shows the effective address, and `/ocr-url reset` restores the selected model's configured address. The override is saved in `~/.pi/agent/pdf-img-ocr.json` and applies to both the tool and command across Pi sessions. The source image or rendered PDF pages are sent to that Ollama server. Reload Pi extensions with `/reload` after installation or an update.
 
 #### Speech-to-text Extension
 
@@ -233,6 +247,6 @@ Installer stages sources before replacement and restores prior destinations if r
 - `--target-dir <path>`: Custom destination directory for pi extensions (default: `~/.pi/agent/extensions`).
 - `--agents-target <path>`: Custom base directory for `.agents` (default: `~/.agents`).
 - `--no-force`: Prevent overwriting existing target files.
-- `--extensions <name> [<name> ...]`: Install selected extensions; default installs all. Choices: `custom-tui`, `agent-switcher`, `subagent-spawner`, `notes`, `stt`.
+- `--extensions <name> [<name> ...]`: Install selected extensions; default installs all. Choices: `custom-tui`, `agent-switcher`, `subagent-spawner`, `notes`, `pdf-img-ocr`, `stt`.
 
 STT assets install under `<target-dir>/stt/`; this matches recorder path used by `stt.ts`.
