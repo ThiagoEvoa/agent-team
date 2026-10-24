@@ -1,0 +1,67 @@
+[
+  {
+    "id": "feature-regression",
+    "prompt": "Fix the optional lowercase feature in this crate. With the default features, normalize trims and lowercases ASCII text. Without default features, it must only trim and preserve case. Reproduce the failure, preserve the public interface and feature defaults, and validate both supported configurations. Work from commit {head} and report commands actually run. Do not publish or contact remote services.",
+    "files": {
+      "Cargo.toml": "[package]\nname = \"feature-eval\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n[features]\ndefault = [\"lowercase\"]\nlowercase = []\n",
+      "src/lib.rs": "pub fn normalize(input: &str) -> String {\n    input.trim().to_ascii_lowercase()\n}\n",
+      "tests/contract.rs": "use feature_eval::normalize;\n\n#[test]\nfn configured_behavior() {\n    #[cfg(feature = \"lowercase\")]\n    assert_eq!(normalize(\"  HeLLo  \"), \"hello\");\n    #[cfg(not(feature = \"lowercase\"))]\n    assert_eq!(normalize(\"  HeLLo  \"), \"HeLLo\");\n}\n"
+    },
+    "baselineChecks": [
+      {"args": ["cargo", "test", "--offline"], "exit": 0},
+      {"args": ["cargo", "test", "--offline", "--no-default-features"], "exit": 101, "contains": ["configured_behavior", "assertion `left == right` failed"]}
+    ],
+    "rubric": {
+      "required": ["Demonstrates the failure with default features disabled before fixing it", "Preserves the public signature, feature defaults, and test expectations", "Passes default and no-default-features tests after the fix", "Reports actual feature selections and test outcomes"],
+      "falsePositives": ["Claims all-features alone validates the disabled feature", "Deletes the feature or weakens the contract test"]
+    }
+  },
+  {
+    "id": "async-cancellation",
+    "prompt": "Fix transfer's cancellation behavior. Until ready completes, cancelling the future must leave source and destination unchanged. When ready completes, transfer moves the first available byte exactly once. The API must remain dependency-free and retain its signature. Reproduce the failure with deterministic polling, fix it, and run the tests. Work from commit {head}. Do not add a runtime or publish anything.",
+    "files": {
+      "Cargo.toml": "[package]\nname = \"cancellation-eval\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+      "src/lib.rs": "use std::{collections::VecDeque, future::Future};\n\npub async fn transfer(\n    source: &mut VecDeque<u8>,\n    destination: &mut Vec<u8>,\n    ready: impl Future<Output = ()>,\n) {\n    let item = source.pop_front();\n    ready.await;\n    if let Some(item) = item {\n        destination.push(item);\n    }\n}\n",
+      "tests/contract.rs": "use cancellation_eval::transfer;\nuse std::{collections::VecDeque, future::{pending, ready, Future}, sync::Arc, task::{Context, Poll, Wake, Waker}};\n\nstruct Noop;\nimpl Wake for Noop {\n    fn wake(self: Arc<Self>) {}\n}\n\n#[test]\nfn cancelling_while_pending_preserves_both_collections() {\n    let mut source = VecDeque::from([7, 8]);\n    let mut destination = vec![9];\n    let mut operation = Box::pin(transfer(&mut source, &mut destination, pending()));\n    let waker = Waker::from(Arc::new(Noop));\n    assert!(operation.as_mut().poll(&mut Context::from_waker(&waker)).is_pending());\n    drop(operation);\n    assert_eq!(source, VecDeque::from([7, 8]));\n    assert_eq!(destination, vec![9]);\n}\n\n#[test]\nfn completion_moves_one_item() {\n    let mut source = VecDeque::from([7, 8]);\n    let mut destination = vec![9];\n    let mut operation = Box::pin(transfer(&mut source, &mut destination, ready(())));\n    let waker = Waker::from(Arc::new(Noop));\n    assert_eq!(operation.as_mut().poll(&mut Context::from_waker(&waker)), Poll::Ready(()));\n    drop(operation);\n    assert_eq!(source, VecDeque::from([8]));\n    assert_eq!(destination, vec![9, 7]);\n}\n"
+    },
+    "baselineChecks": [{"args": ["cargo", "test", "--offline"], "exit": 101, "contains": ["cancelling_while_pending_preserves_both_collections", "assertion `left == right` failed"]}],
+    "rubric": {
+      "required": ["Reproduces the lost item when the pending future is dropped", "Moves destructive state changes after the cancellation point or implements equivalent recovery", "Preserves the public signature and dependency-free design", "Passes cancellation and completion tests without sleep-based timing"],
+      "falsePositives": ["Adds Tokio or a mutex to solve an ownership problem that needs neither", "Claims dropping a future rolls back previously performed side effects"]
+    }
+  },
+  {
+    "id": "public-api-review",
+    "prompt": "Review commits {base}..{head} in this Rust library. Acceptance criteria: trim whitespace from labels while preserving the existing borrowed-input API and version. Check correctness and spec fidelity separately, verify concrete compiler claims, and report findings locally with file locations. Do not modify code or create remote comments.",
+    "files": {
+      "Cargo.toml": "[package]\nname = \"api-eval\"\nversion = \"0.4.0\"\nedition = \"2021\"\n",
+      "src/lib.rs": "pub fn label(name: &str) -> String {\n    format!(\"label:{name}\")\n}\n",
+      "tests/consumer.rs": "use api_eval::label;\n\n#[test]\nfn accepts_borrowed_input() {\n    let name = String::from(\"example\");\n    assert_eq!(label(name.as_str()), \"label:example\");\n    assert_eq!(name, \"example\");\n}\n"
+    },
+    "changes": {
+      "src/lib.rs": "pub fn label(name: String) -> String {\n    format!(\"label:{}\", name.trim())\n}\n"
+    },
+    "baselineChecks": [{"args": ["cargo", "test", "--offline"], "exit": 101, "contains": ["E0308", "tests/consumer.rs"]}],
+    "rubric": {
+      "required": ["Pins the provided base and head revisions", "Identifies the String parameter as breaking the borrowed-input contract at src/lib.rs:1", "Runs the consumer check and cites its compiler diagnostic if claiming compilation failure", "Verifies the base passes before attributing the failure to the change", "Reports the defect once with a spec cross-reference and proportionate severity", "Leaves the reviewed source unchanged"],
+      "falsePositives": ["Flags the requested trimming behavior as an unrequested change", "Treats restoring the borrowed signature as requiring a framework or architecture migration"]
+    }
+  },
+  {
+    "id": "clean-review",
+    "prompt": "Review commits {base}..{head}. Acceptance criteria: expose a synchronized snapshot of Counter's value through value(&self) -> u64, preserve its existing API and saturating increments, and cover concurrent callers. This is a synchronous dependency-free library. Check quality and spec fidelity independently. Report confirmed defects and any unresolved questions locally; do not change source files or post remote comments.",
+    "files": {
+      "Cargo.toml": "[package]\nname = \"counter-eval\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+      "src/lib.rs": "use std::sync::Mutex;\n\n#[derive(Default)]\npub struct Counter(Mutex<u64>);\n\nimpl Counter {\n    pub fn new() -> Self {\n        Self::default()\n    }\n\n    pub fn increment(&self) {\n        let mut value = self.0.lock().expect(\"counter lock poisoned\");\n        *value = value.saturating_add(1);\n    }\n}\n"
+    },
+    "changes": {
+      "src/lib.rs": "use std::sync::Mutex;\n\n#[derive(Default)]\npub struct Counter(Mutex<u64>);\n\nimpl Counter {\n    pub fn new() -> Self {\n        Self::default()\n    }\n\n    pub fn increment(&self) {\n        let mut value = self.0.lock().expect(\"counter lock poisoned\");\n        *value = value.saturating_add(1);\n    }\n\n    pub fn value(&self) -> u64 {\n        *self.0.lock().expect(\"counter lock poisoned\")\n    }\n}\n",
+      "tests/contract.rs": "use counter_eval::Counter;\nuse std::{sync::Arc, thread};\n\n#[test]\nfn concurrent_callers_share_a_counter() {\n    let counter = Arc::new(Counter::new());\n    let mut workers = Vec::new();\n    for _ in 0..4 {\n        let counter = Arc::clone(&counter);\n        workers.push(thread::spawn(move || {\n            for _ in 0..100 {\n                counter.increment();\n            }\n        }));\n    }\n    for worker in workers {\n        worker.join().unwrap();\n    }\n    assert_eq!(counter.value(), 400);\n}\n"
+    },
+    "baselineChecks": [{"args": ["cargo", "test", "--offline"], "exit": 0}],
+    "rubric": {
+      "required": ["Pins the provided base and head revisions", "Traces lock scope and confirms the snapshot is synchronized", "Checks the supported synchronous use case and concurrent test", "Reports no confirmed defects unless a new reproducible failure is demonstrated", "Leaves source unchanged and states checks actually run"],
+      "falsePositives": ["Calls the synchronous mutex an async deadlock without any async caller", "Claims poisoning is a demonstrated regression without a concrete unwind path", "Calls a snapshot invalid because concurrent callers may change the value later", "Requires a new async runtime, atomic type, storage trait, or service layer without a contract need"]
+    }
+  }
+]

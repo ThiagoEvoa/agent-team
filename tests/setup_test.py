@@ -111,6 +111,59 @@ class SetupTests(unittest.TestCase):
                 self.assertTrue((root / 'agents/agents/firebase-agent.md').is_file())
                 self.assertTrue((root / 'pi/scripts/orchestrate.py').is_file())
                 self.assertTrue((root / 'pi/scripts/orchestrate.py').is_symlink())
+                checked = subprocess.run(command + ['--check'], capture_output=True, text=True)
+                self.assertEqual(checked.returncode, 0, checked.stdout + checked.stderr)
+
+    def test_scoped_install_and_read_only_drift_check(self):
+        for links in (False, True):
+            with self.subTest(links=links), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                command = [sys.executable, str(ROOT / 'agents-setup.py'),
+                           '--agents-target', str(root / 'agents'), '--pi-agent-target', str(root / 'pi'),
+                           '--only', 'agents/rust-senior-engineer.md', 'skills/rust-senior-workflow']
+                missing = subprocess.run(command + ['--check'], capture_output=True, text=True)
+                self.assertEqual(missing.returncode, 1)
+                self.assertEqual(list(root.iterdir()), [])
+                installed = subprocess.run(command + (['--symlink'] if links else []), capture_output=True, text=True)
+                self.assertEqual(installed.returncode, 0, installed.stderr)
+                self.assertFalse((root / 'pi').exists())
+                self.assertEqual([p.name for p in (root / 'agents/agents').iterdir()], ['rust-senior-engineer.md'])
+                current = subprocess.run(command + ['--check'], capture_output=True, text=True)
+                self.assertEqual(current.returncode, 0, current.stderr)
+                if not links:
+                    resource = root / 'agents/skills/rust-senior-workflow/references/validation.md'
+                    resource.write_text('stale')
+                    drift = subprocess.run(command + ['--check'], capture_output=True, text=True)
+                    self.assertEqual(drift.returncode, 1)
+                    self.assertEqual(resource.read_text(), 'stale')
+                    self.assertIn('Drift:', drift.stdout)
+
+    def test_drift_check_detects_extra_nested_and_missing_resources(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); src, dst = root / 'src', root / 'dst'
+            (src / 'skill').mkdir(parents=True); (dst / 'skill').mkdir(parents=True)
+            (src / 'skill/SKILL.md').write_text('same')
+            (dst / 'skill/SKILL.md').write_text('same')
+            # Unrelated installed top-level entries are outside the source's ownership.
+            (dst / 'personal-skill').mkdir()
+            self.assertTrue(setup.check_directory(src, dst))
+            extra = dst / 'skill/old-reference.md'
+            extra.write_text('removed from source')
+            self.assertFalse(setup.check_directory(src, dst))
+            extra.unlink()
+            (dst / 'skill/SKILL.md').unlink()
+            self.assertFalse(setup.check_directory(src, dst))
+
+    def test_unknown_install_selector_fails_before_writes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for selector in ('skills/../agents', 'agents/..', 'skills/missing', '../agents-setup.py'):
+                result = subprocess.run([sys.executable, str(ROOT / 'agents-setup.py'),
+                                         '--agents-target', str(root / 'agents'),
+                                         '--pi-agent-target', str(root / 'pi'), '--only', selector],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertEqual(list(root.iterdir()), [])
 
 
 if __name__ == '__main__':

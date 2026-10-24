@@ -7,9 +7,9 @@ description: Implement, debug, and refactor Rust crates and Cargo workspaces wit
 
 ## Establish context
 
-Read the request or linked issue, `Cargo.toml`, `rust-toolchain.toml` if present, workspace members, feature definitions, repository instructions, `CONTEXT.md`, and relevant ADRs. Identify the package and feature/target combinations affected. Follow the existing edition, MSRV, error conventions, async runtime, and dependency policy; do not impose a new stack on an existing crate.
+Read the request or linked issue, `Cargo.toml`, `rust-toolchain.toml` or `rust-toolchain` if present, workspace members, feature definitions, repository instructions, `CONTEXT.md`, and relevant ADRs. Inspect CI and `.cargo/config.toml` for supported toolchains, targets, and custom commands. Identify the package and feature/target combinations affected. Follow the existing edition, MSRV, error conventions, async runtime, and dependency policy; do not impose a new stack on an existing crate.
 
-When an API or toolchain detail is uncertain, check the installed toolchain and authoritative documentation. For official Rust or Cargo documentation, run `rustup doc` and consult the local copy for the active toolchain first; if `rustup` or the docs are unavailable, or a different version is needed, use the official online documentation. For third-party crates, consult documentation matching the dependency version. In particular, confirm feature behavior before changing dependency declarations. Cargo features should normally remain additive; `--all-features` does not substitute for checking important `--no-default-features` or mutually constrained configurations. See the [Cargo features reference](https://doc.rust-lang.org/cargo/reference/features.html).
+When an API or toolchain detail is uncertain, check the installed toolchain and authoritative documentation. For official Rust or Cargo documentation, locate the active toolchain's local copy with `rustup doc --path` (or `rustup doc --path --cargo`) and read the relevant files without launching a browser. If `rustup` or the docs are unavailable, or a different version is needed, use the official online documentation. For third-party crates, consult documentation matching the dependency version. In particular, confirm feature behavior before changing dependency declarations. Cargo features should normally remain additive; `--all-features` does not substitute for checking important `--no-default-features` or mutually constrained configurations. See the [Cargo features reference](https://doc.rust-lang.org/cargo/reference/features.html).
 
 ## HTTP APIs
 
@@ -57,9 +57,11 @@ Treat this as an example, not a required scaffold. A small feature can live in o
 4. Treat `unsafe` and FFI as explicit invariants: prefer safe APIs where practical; document and test assumptions about aliasing, lifetimes, initialization, thread safety, and unwinding at the actual boundary. Do not add `unsafe` merely to satisfy a performance guess.
 5. Re-run the focused check while iterating, then inspect the diff for scope, public API compatibility, feature-gated code, and accidental secrets or generated artifacts.
 
+For async tasks, shared state, or request lifecycle changes, read [Async runtime contracts](references/async-runtime.md). Apply the checks to the code being changed; preserve the project's runtime and avoid adding infrastructure for hypothetical needs.
+
 ## Validation
 
-Use the repository's documented commands when they exist. Otherwise select commands appropriate to the affected package and target; do not claim a check passed if it was not run:
+Use the repository's documented commands when they exist. Read [Validation decisions](references/validation.md) to select checks for MSRV, Cargo features, deployment targets, documentation, and dependency changes. Start with the affected package and broaden to its consumers or workspace when shared contracts change. A typical workspace baseline is:
 
 ```text
 cargo fmt --all -- --check
@@ -68,7 +70,7 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-Run relevant feature combinations and target-specific checks when the change touches them. `--workspace` matters because Cargo's default member selection may omit crates; `cargo test` includes documentation tests for selected libraries. See the [Cargo test reference](https://doc.rust-lang.org/cargo/commands/cargo-test.html). If a command fails because of environment or unavailable dependencies, report the exact limitation and keep the code reviewable. Use benchmarks or profiling only when performance is part of the request or a concrete regression risk.
+`--workspace` matters because Cargo's default member selection may omit crates; `cargo test` includes documentation tests for selected libraries. See the [Cargo test reference](https://doc.rust-lang.org/cargo/commands/cargo-test.html). Record commands, toolchain, feature/target selection, outcomes, and skipped checks. If a command fails, distinguish a change-induced failure from a reproduced baseline failure or an environment limitation. Do not claim a check passed if it was not run. Use benchmarks or profiling only when performance is part of the request or a concrete regression risk.
 
 ## Handoff
 

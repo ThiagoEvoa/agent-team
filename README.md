@@ -132,6 +132,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p '*_test.py'
 Installer tests cover source/destination identity, failed copies, missing sources, and repeated copy/symlink installation. Subagent tests use fake CLI processes: no model requests or cloud operations.
 Firebase tests check persona/skill wiring, MCP preset, catalogs, and routing documentation.
 Selection-mechanism tests do not evaluate model routing accuracy. `tests/routing-evaluation.json` provides separate model-routing cases: in a fresh `/agent auto` session with current SYSTEM.md, request only persona selection for each prompt (no implementation or remote actions), then compare first `selectAgent` argument with `expectedAgent`. Record model/version and mismatches. This model evaluation is not part of deterministic unit tests.
+For Rust engineering behavior, use the [isolated task evaluation](tests/rust-behavior-evaluation.md): feature configuration, async cancellation, public API compatibility review, and a clean review for false-positive measurement. The Python suite verifies fixture baselines with offline Cargo tests when Rust and Git are available; actual agent accuracy requires separate fresh-session runs.
 Core selection tests use isolated agent fixtures. With Pi installed, integration test also
 loads both extensions through Pi's real loader and renders custom footer.
 Set `PI_EXTENSION_LOADER` to override loader discovery.
@@ -235,6 +236,15 @@ Symlinks repository files directly into target directories for active editing:
 
 Installer stages sources before replacement and restores prior destinations if replacement fails. Same-file sources are skipped safely. Helper scripts are repository-owned files recovered from Git history, not links into one user's installation. `pi-config/` presets still require manual merging.
 
+Check installed content without changing files. Exit code `0` means current; `1` means missing, changed, or unreadable entries. Extra resources inside a selected skill count as drift; unrelated installed top-level entries are ignored. Use `--only` for a scoped update, then check the same entries:
+
+```bash
+./agents-setup.py --only agents/rust-senior-engineer.md skills/rust-senior-workflow skills/rust-senior-review-workflow
+./agents-setup.py --check --only agents/rust-senior-engineer.md skills/rust-senior-workflow skills/rust-senior-review-workflow
+```
+
+Add `--symlink` to the installation command for development mode. A scoped agent/skill update leaves other entries and Pi script wiring untouched. Restart the consuming session or reload its instructions after updating copied files.
+
 ### Script Options
 
 #### `agents-setup.py`
@@ -243,6 +253,8 @@ Installer stages sources before replacement and restores prior destinations if r
 - `--agents-target <path>`: Custom base directory for `.agents` (default: `~/.agents`).
 - `--pi-agent-target <path>`: Custom base directory for `.pi/agent` (default: `~/.pi/agent`).
 - `--no-force`: Prevent overwriting existing target files.
+- `--check`: Compare installed content with the repository without writing; exit nonzero on drift or comparison errors.
+- `--only <group/entry> [<group/entry> ...]`: Limit checking or installation to named top-level entries in `agents/`, `skills/`, or `scripts/`.
 
 #### `pi-extensions-setup.py`
 - `--symlink` / `-s`: Create symbolic links.
