@@ -9,7 +9,7 @@ description: Implement, debug, and refactor Rust crates and Cargo workspaces wit
 
 Read the request or linked issue, `Cargo.toml`, `rust-toolchain.toml` if present, workspace members, feature definitions, repository instructions, `CONTEXT.md`, and relevant ADRs. Identify the package and feature/target combinations affected. Follow the existing edition, MSRV, error conventions, async runtime, and dependency policy; do not impose a new stack on an existing crate.
 
-When an API or toolchain detail is uncertain, check the installed toolchain and official Rust/Cargo or crate documentation. In particular, confirm feature behavior before changing dependency declarations. Cargo features should normally remain additive; `--all-features` does not substitute for checking important `--no-default-features` or mutually constrained configurations. See the [Cargo features reference](https://doc.rust-lang.org/cargo/reference/features.html).
+When an API or toolchain detail is uncertain, check the installed toolchain and authoritative documentation. For official Rust or Cargo documentation, run `rustup doc` and consult the local copy for the active toolchain first; if `rustup` or the docs are unavailable, or a different version is needed, use the official online documentation. For third-party crates, consult documentation matching the dependency version. In particular, confirm feature behavior before changing dependency declarations. Cargo features should normally remain additive; `--all-features` does not substitute for checking important `--no-default-features` or mutually constrained configurations. See the [Cargo features reference](https://doc.rust-lang.org/cargo/reference/features.html).
 
 ## HTTP APIs
 

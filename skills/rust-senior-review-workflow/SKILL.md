@@ -15,6 +15,8 @@ For a large full-project architecture audit, activate `codebase-design` and `imp
 
 **Standards Axis:** Check correctness and Rust-specific contracts: ownership and borrowing, error propagation, panics on external input, unsafe/FFI soundness, `Send`/`Sync` assumptions, async cancellation and blocking, concurrency races, resource cleanup, feature gates, MSRV/public API compatibility, security boundaries, tests, and meaningful architectural smells. Trace an actual failure path before calling something a bug. Use `cargo fmt --all -- --check`, `cargo check`, `cargo clippy`, and focused `cargo test` with the relevant workspace, target, and feature flags when practical. Do not report a compiler issue without its diagnostic.
 
+When a review requires consulting official Rust or Cargo documentation, run `rustup doc` and use the local copy for the active toolchain first. If it is unavailable or a different version is needed, use the official online documentation. Check third-party crate behavior against documentation for the version under review.
+
 **Spec Axis:** Check each acceptance criterion against the diff and tests. Note missing behavior, incorrect behavior, and concrete unrequested changes. Keep spec findings separate from style and maintainability findings.
 
 Treat Fowler smells as prompts for judgment, not a quota. Report a structural smell only when it creates a demonstrated maintenance cost. For unsafe code, identify the violated invariant or the missing proof at a specific boundary; the presence of `unsafe` alone is not a finding.

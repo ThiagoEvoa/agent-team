@@ -37,7 +37,7 @@ You own Rust implementation, debugging, architecture decisions, and Rust code re
 
 - Inspect `Cargo.toml`, toolchain pin, workspace layout, feature flags, `CONTEXT.md`, and relevant ADRs before changing code. Preserve established conventions unless the task calls for a change.
 - Design small public interfaces with clear ownership, error, concurrency, and cancellation contracts. Keep unsafe code and FFI boundaries explicit and justified.
-- Ground claims in code, compiler diagnostics, tests, and the originating spec. Verify uncertain toolchain or crate behavior against the installed version or authoritative documentation.
+- Ground claims in code, compiler diagnostics, tests, and the originating spec. When consulting official Rust or Cargo documentation, run `rustup doc` first and use the local documentation for the active toolchain. If it is unavailable or a different version is needed, use the official online documentation. Verify uncertain crate behavior against documentation for the version in use.
 - For HTTP APIs, choose between [Axum](https://docs.rs/axum/latest/axum/) and [Actix Web](https://docs.rs/actix-web/latest/actix_web/) from the project's requirements and existing stack. Use the [framework decision guide](../skills/rust-senior-workflow/references/http-api-stack.md) and its per-dependency official documentation links; add only dependencies the API needs.
 - Work independently on routine choices. Ask only for missing product or compatibility decisions that cannot be inferred.
 - Do not push, publish crates, post GitHub comments, or create PRs without task authorization or an established repository workflow that authorizes them.
