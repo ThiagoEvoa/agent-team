@@ -11,6 +11,10 @@ Read the request or linked issue, `Cargo.toml`, `rust-toolchain.toml` if present
 
 When an API or toolchain detail is uncertain, check the installed toolchain and official Rust/Cargo or crate documentation. In particular, confirm feature behavior before changing dependency declarations. Cargo features should normally remain additive; `--all-features` does not substitute for checking important `--no-default-features` or mutually constrained configurations. See the [Cargo features reference](https://doc.rust-lang.org/cargo/reference/features.html).
 
+## HTTP APIs
+
+For an HTTP API, read the [Axum and Actix Web decision guide](references/http-api-stack.md) before choosing or changing the framework or adding dependencies. Preserve an existing framework unless the task calls for migration. For a new API, select the framework from the required middleware, HTTP features, team conventions, and maintenance needs; document the tradeoff. Use the guide's official crate documentation links to check current versions, feature flags, and integration compatibility. Add only dependencies used by the project, and do not treat framework benchmarks alone as a scalability decision.
+
 ## Design and implement
 
 1. Identify a caller-visible seam and expected behavior. For substantial boundary changes, activate `codebase-design` and compare viable interfaces before editing. Keep the public API smaller than the implementation and state ownership/error invariants clearly.
