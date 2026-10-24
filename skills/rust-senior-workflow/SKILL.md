@@ -15,6 +15,40 @@ When an API or toolchain detail is uncertain, check the installed toolchain and 
 
 For an HTTP API, read the [Axum and Actix Web decision guide](references/http-api-stack.md) before choosing or changing the framework or adding dependencies. Preserve an existing framework unless the task calls for migration. For a new API, select the framework from the required middleware, HTTP features, team conventions, and maintenance needs; document the tradeoff. Use the guide's official crate documentation links to check current versions, feature flags, and integration compatibility. Add only dependencies used by the project, and do not treat framework benchmarks alone as a scalability decision.
 
+## Architecture: modules by feature
+
+For new HTTP APIs and APIs growing into multiple features, default to a modular monolith: one application whose modules are organized around capabilities such as documents, users, and authentication. Keep the current simple layout for a tiny single-feature API; preserve an existing project's architecture unless a migration is part of the task. These feature modules are separate from Cargo feature flags.
+
+A possible layout as features grow:
+
+```text
+src/
+  main.rs                # Configuration, dependency construction, server startup
+  lib.rs                 # Small public application interface
+  router.rs              # Assemble feature routers and application middleware
+  state.rs               # Application dependencies shared with HTTP handlers
+  features.rs            # Declare feature modules
+  features/
+    documents.rs         # Declare internals; expose the feature router or operations
+    documents/
+      routes.rs
+      handlers.rs
+      store.rs
+    users.rs
+    users/
+      routes.rs
+      handlers.rs
+```
+
+Treat this as an example, not a required scaffold. A small feature can live in one module. Add files for business operations, models, errors, or persistence only when the behavior justifies them. Non-HTTP crates can use the same feature boundaries with entry points appropriate to their callers.
+
+- Each feature owns its routes, HTTP handlers, business behavior, and storage implementation. The application router composes feature routers. Keep HTTP parsing and response mapping in handlers; place substantial business rules in feature operations that can be used without HTTP.
+- Expose a small feature interface, typically a router builder and any operations other features actually need. Keep handlers and implementation modules private, using `pub(super)` or `pub(crate)` only as needed. Cross-feature calls use the owning feature's interface; avoid reaching into its handlers or storage internals. Put shared concepts in shared modules only when they have clear ownership and real consumers.
+- Construct dependencies at startup and pass them into application assembly. Let `AppState` hold feature-owned stores or services and genuinely shared resources such as pools or clients. Keep document-specific behavior in a `DocumentStore` rather than making application state itself the document store as more features arrive.
+- Hide locks and storage representation behind methods. Avoid exposing a raw mutex or using `Deref` to bypass the store interface. For simple in-memory operations with low contention, a synchronous mutex is reasonable if no guard crosses `.await`; account for document cloning and other work performed under the lock. When `new()` and `Default` both mean normal initialization, make them produce the same initial state.
+- Introduce storage traits when alternate implementations or a useful test seam justify them. Add service layers, separate crates, or ports and adapters when concrete complexity or reuse calls for those boundaries; do not create pass-through layers or a crate for every feature by default.
+- Test through the public feature operations and assembled HTTP router. Supply isolated dependencies per test, verify shared state when it is part of the contract, and preserve route paths, status codes, and response bodies during a layout-only refactor. Check external callers before narrowing an existing public API.
+
 ## Design and implement
 
 1. Identify a caller-visible seam and expected behavior. For substantial boundary changes, activate `codebase-design` and compare viable interfaces before editing. Keep the public API smaller than the implementation and state ownership/error invariants clearly.
