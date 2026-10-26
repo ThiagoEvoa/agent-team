@@ -291,6 +291,8 @@ export default function customTuiExtension(pi: ExtensionAPI) {
 
 						// 3. Dynamic State Items
 						const items: string[] = [agentPart, contextPart];
+						const ttsStatus = footerData.getExtensionStatuses().get("tts");
+						if (ttsStatus) items.push(theme.fg("muted", ttsStatus));
 
 						if (activeRunningTools.size > 0) {
 							// Active tool execution phase

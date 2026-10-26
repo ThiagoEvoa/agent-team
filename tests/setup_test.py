@@ -93,6 +93,38 @@ class SetupTests(unittest.TestCase):
                     result = subprocess.run(command, capture_output=True, text=True)
                     self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertTrue((Path(tmp) / 'pi/agent-switcher.ts').is_file())
+                for filename in ('tts.ts', 'tts/core.ts', 'tts/README.md'):
+                    self.assertTrue((Path(tmp) / 'pi' / filename).is_file(), filename)
+
+    def test_tts_selected_install_preserves_settings_in_all_modes(self):
+        for links in (False, True):
+            for store in (False, True):
+                with self.subTest(links=links, store=store), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    target = root / 'pi/extensions'
+                    target.mkdir(parents=True)
+                    config = target.parent / 'tts.json'
+                    saved = '{"enabled":true,"model":"personal-model","voice":"personal-voice"}\n'
+                    config.write_text(saved)
+                    (target / 'tts.ts').write_text('old extension')
+                    command = [sys.executable, str(ROOT / 'pi-extensions-setup.py'),
+                               '--target-dir', str(target), '--agents-target', str(root / 'agents'),
+                               '--extensions', 'tts']
+                    if links:
+                        command.append('--symlink')
+                    if store:
+                        command.append('--store-in-agents')
+                    for _ in range(2):
+                        result = subprocess.run(command, capture_output=True, text=True)
+                        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        self.assertEqual(config.read_text(), saved)
+                        for src, filename in extensions.EXTENSION_FILES['tts']:
+                            installed = target / filename
+                            self.assertEqual(installed.read_bytes(), (ROOT / src).read_bytes())
+                            self.assertEqual(installed.is_symlink(), links or store)
+                            if store:
+                                self.assertTrue((root / 'agents/extension' / filename).is_file())
+                        self.assertEqual(sorted(p.name for p in target.iterdir()), ['tts', 'tts.ts'])
 
     def test_recovered_scripts_compile(self):
         for path in (ROOT / 'scripts').glob('*.py'):

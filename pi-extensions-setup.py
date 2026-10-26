@@ -27,6 +27,12 @@ EXTENSION_FILES = {
     "subagent-spawner": [("extension/subagent-spawner/subagent-spawner.ts", "subagent-spawner.ts")],
     "notes": [("extension/notes-extension/notes-extension.ts", "notes-extension.ts")],
     "pdf-img-ocr": [("extension/pdf-img-ocr/pdf-img-ocr.ts", "pdf-img-ocr.ts")],
+    # Keep the TTS module beside its entry point for relative imports in every install mode.
+    "tts": [
+        ("extension/tts-extension/tts.ts", "tts.ts"),
+        ("extension/tts-extension/tts/core.ts", "tts/core.ts"),
+        ("extension/tts-extension/tts/README.md", "tts/README.md"),
+    ],
     # STT runtime assets stay together because stt.ts resolves the recorder here.
     "stt": [
         ("extension/stt-extension/stt.ts", "stt.ts"),

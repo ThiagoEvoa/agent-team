@@ -152,6 +152,10 @@ test('real Pi loader: footer follows selection, completion, manual changes, and 
   const tool = switcher.tools.get('selectAgent').definition;
   await emit('session_start');
   assert.match(footer.render(200)[0], /agent: none/);
+  statuses.set('tts', 'TTS: speaking…');
+  assert.match(footer.render(200)[0], /TTS: speaking…/);
+  statuses.delete('tts');
+  assert.doesNotMatch(footer.render(200)[0], /TTS:/);
   await emit('before_agent_start', { prompt: 'Review Flutter code', systemPrompt: 'Base' });
   const beforeSelection = renders;
   await tool.execute('test', { agent: 'dart-senior-reviewer' }, undefined, undefined, ctx);

@@ -111,6 +111,7 @@ TypeScript runtime modules providing UI enhancements and subagent coordination:
 - `subagent-spawner/subagent-spawner.ts`: Isolated subagent delegation and execution management.
 - `notes-extension/notes-extension.ts`: Durable session-note synthesis, semantic note search, and note reading.
 - `stt-extension/stt.ts`: Local macOS speech-to-text using AVAudioEngine and whisper.cpp.
+- `tts-extension/tts.ts`: Optional final-answer speech through a separately configured Ollama speech model, with macOS playback.
 - `pdf-img-ocr/pdf-img-ocr.ts`: PNG, JPEG, and PDF OCR through Pi's selected Ollama vision model.
 
 #### Agent Selection
@@ -134,6 +135,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p '*_test.py'
 ```
 
 Installer tests cover source/destination identity, failed copies, missing sources, and repeated copy/symlink installation. Subagent tests use fake CLI processes: no model requests or cloud operations.
+TTS tests use mocked speech requests and a silent player, checking final-answer filtering, saved settings, long answers, and cancellation. TTS installer checks cover direct and canonical-storage modes and preserve user settings.
 Firebase tests check persona/skill wiring, MCP preset, catalogs, and routing documentation.
 Selection-mechanism tests do not evaluate model routing accuracy. `tests/routing-evaluation.json` provides separate model-routing cases: in a fresh `/agent auto` session with current SYSTEM.md, request only persona selection for each prompt (no implementation or remote actions), then compare first `selectAgent` argument with `expectedAgent`. Record model/version and mismatches. This model evaluation is not part of deterministic unit tests.
 For Rust engineering behavior, use the [isolated task evaluation](tests/rust-behavior-evaluation.md): feature configuration, async cancellation, public API compatibility review, and a clean review for false-positive measurement. The Python suite verifies fixture baselines with offline Cargo tests when Rust and Git are available; actual agent accuracy requires separate fresh-session runs.
@@ -174,6 +176,31 @@ curl -L -o ~/.cache/whisper/ggml-small.bin \\
 ```
 
 Use `/stt` to start/stop recording. Use `/stt-setup` to diagnose and `/stt-cancel` to discard. Audio remains local and temporary WAV files are deleted after processing.
+
+#### Text-to-speech Extension
+
+TTS is installed by default, or select it explicitly:
+
+```bash
+./pi-extensions-setup.py --extensions tts
+```
+
+On the Ollama server, install `phonon:40m-multilingual` with `ollama pull phonon:40m-multilingual`. Phonon requires Apple Silicon and Ollama 0.40.9 or newer. Playback uses the Mac running Pi and its built-in `afplay`; the Ollama server may be remote. Use a Pi release supporting `agent_settled` (validated with Pi 1.4.0).
+
+In Pi, reload, configure the server, test, and enable speech:
+
+```text
+/reload
+/tts-url http://YOUR-OLLAMA-SERVER:11434
+/tts test
+/tts on
+```
+
+Speech is off by default. Your selected task model stays independent of the speech model, which defaults to `phonon:40m-multilingual`. Only the completed final assistant answer is spoken after tools, retries, and continuations finish. Thinking, tool output, intermediate messages, errors, and aborted/truncated responses are excluded.
+
+Use `/tts` to toggle, `/tts off` to disable, `/tts stop` to cancel current speech, and `/tts status` to inspect settings. `/tts-model <model>` selects the speech model; `/tts-voice <voice-name>` selects a voice supported by that model. Run `ollama show phonon:40m-multilingual` on the server to list its voices, then `/tts test` to hear your choice. `/tts-voice reset` restores the default voice.
+
+Settings persist in `~/.pi/agent/tts.json` and are preserved by installation. The TTS URL is separate from OCR and the selected task model; `/v1` suffixes are accepted. Answer text is sent to the configured speech server. Playback runs in the background, with temporary audio cleanup and cancellation on new runs or session shutdown. The custom footer displays TTS status when space permits. See the [full TTS setup and command guide](extension/tts-extension/tts/README.md).
 
 #### Notes Extension
 
@@ -225,10 +252,10 @@ Automatically detects current user (`getpass.getuser()` / `Path.home()`) and cop
 Install selected extensions only:
 
 ```bash
-./pi-extensions-setup.py --extensions custom-tui notes stt
+./pi-extensions-setup.py --extensions custom-tui notes stt tts
 ```
 
-Omit `--extensions` to install all extensions. Use `--store-in-agents` for extension files stored canonically under `~/.agents/extension/` and symlinked into Pi.
+Omit `--extensions` to install all extensions, including TTS (disabled until `/tts on`). Use `--store-in-agents` for extension files stored canonically under `~/.agents/extension/` and symlinked into Pi.
 
 ### Symlink / Development Mode
 Symlinks repository files directly into target directories for active editing:
@@ -266,6 +293,7 @@ Add `--symlink` to the installation command for development mode. A scoped agent
 - `--target-dir <path>`: Custom destination directory for pi extensions (default: `~/.pi/agent/extensions`).
 - `--agents-target <path>`: Custom base directory for `.agents` (default: `~/.agents`).
 - `--no-force`: Prevent overwriting existing target files.
-- `--extensions <name> [<name> ...]`: Install selected extensions; default installs all. Choices: `custom-tui`, `agent-switcher`, `subagent-spawner`, `notes`, `pdf-img-ocr`, `stt`.
+- `--extensions <name> [<name> ...]`: Install selected extensions; default installs all. Choices: `custom-tui`, `agent-switcher`, `subagent-spawner`, `notes`, `pdf-img-ocr`, `stt`, `tts`.
 
 STT assets install under `<target-dir>/stt/`; this matches recorder path used by `stt.ts`.
+TTS installs `<target-dir>/tts.ts`, `<target-dir>/tts/core.ts`, and `<target-dir>/tts/README.md`. No speech settings or models are installed or overwritten.
