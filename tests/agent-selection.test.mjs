@@ -10,7 +10,7 @@ const home = mkdtempSync(join(tmpdir(), 'agent-selection-test-'));
 const oldHome = process.env.HOME;
 process.env.HOME = home;
 mkdirSync(join(home, '.agents', 'agents'), { recursive: true });
-for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent', 'web-senior-developer', 'rust-senior-engineer']) {
+for (const name of ['researcher', 'dart-senior-reviewer', 'flutter-qa-specialist', 'ui-ux-designer', 'flutter-senior-developer', 'firebase-agent', 'web-senior-developer', 'rust-senior-engineer', 'go-senior-developer']) {
   copyFileSync(new URL(`../agents/${name}.md`, import.meta.url), join(home, '.agents', 'agents', `${name}.md`));
 }
 copyFileSync(new URL('../agents/README.md', import.meta.url), join(home, '.agents', 'agents', 'README.md'));
@@ -66,6 +66,9 @@ test('explicit persona selection supports representative action/domain cases', a
     ['Implement a Rust CLI command', 'rust-senior-engineer'],
     ['Review a Rust crate pull request', 'rust-senior-engineer'],
     ['Add Rust integration tests', 'rust-senior-engineer'],
+    ['Implement a Go HTTP API', 'go-senior-developer'],
+    ['Review a Go backend pull request', 'go-senior-developer'],
+    ['Fix a goroutine leak in a Go service', 'go-senior-developer'],
     ['Research Firebase Authentication providers', 'researcher'],
     ['Implement Firebase login UI in Flutter', 'flutter-senior-developer'],
   ]) {

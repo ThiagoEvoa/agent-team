@@ -34,6 +34,7 @@ Markdown specifications defining agent persona, constraints, and tool access:
 | `firebase-agent.md` | Firebase MCP-driven configuration, rules, Functions, and operations | Firebase services and backend resources |
 | `web-senior-developer.md` | Astro and Next.js implementation with framework MCP guidance | Websites and interactive web products |
 | `dartfrog-senior-developer.md` | Dart Frog backend development, routing, and middleware | Backend API services |
+| `go-senior-developer.md` | Go backend implementation, debugging, architecture, and review | Go HTTP APIs, services, modules, and workspaces |
 | `rust-senior-engineer.md` | Rust implementation, architecture, debugging, and two-axis review | Rust crates and Cargo workspaces |
 | `dart-senior-reviewer.md` | Two-axis architectural, quality, and security audits | Strict PR and code reviews |
 | `senior-architect.md` | High-leverage module design, ADRs, codebase refactors | System architecture |
@@ -55,6 +56,7 @@ Structured procedural playbooks and templates loaded by agents:
 - `firebase-workflow`: Firebase MCP discovery, target verification, secure implementation, emulator validation, and authorized operations.
 - `web-senior-workflow`: Astro/Next.js implementation, framework MCP guidance, and validation.
 - `dartfrog-senior-workflow`: Backend route structure and middleware patterns.
+- `go-senior-workflow`: Go backend package design, HTTP/persistence, concurrency, diagnosis, review, and native validation.
 - `rust-senior-workflow`: Rust implementation, debugging, and Cargo validation.
 - `rust-senior-review-workflow`: Two-axis Rust PR and code review.
 - `dart-senior-reviewer-workflow`: Review standards, Fowler smells, two-axis reports.
@@ -66,6 +68,8 @@ Structured procedural playbooks and templates loaded by agents:
 - `codebase-design`: Architectural principles for deep module design.
 - `improve-codebase-architecture`: Shallow module discovery and refactor reports.
 - `diagnosing-bugs`: 6-phase systematic debugging and resolution loop.
+
+The independent [compact team](compact-team/SYSTEM.md) includes Go in its existing `software-engineer` agent and workflow, with a bundled [Go profile](compact-team/skills/software-engineer-workflow/references/go.md) loaded only for Go work.
 
 #### Firebase MCP
 

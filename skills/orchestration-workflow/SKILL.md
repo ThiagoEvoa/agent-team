@@ -68,11 +68,13 @@ Select the appropriate developer and reviewer agents. For `spawnSubagent`, pass 
   - **Firebase service tasks**: Use `firebase-agent` for Firebase configuration, Security Rules, indexes, Functions, and Firebase-specific resource operations/deployment via verified Firebase MCP tools. Platform SDK consumption/UI stays with Flutter/web developer; general CI/CD stays with DevOps. Research/review/QA remain action-first; cloud mutations require explicit target/scope approval.
   - **Flutter/mobile tasks**: Use `flutter-senior-developer` agent.
   - **Astro/Next.js/web implementation tasks**: Use `web-senior-developer` agent. Inspect platform context before routing generic frontend work.
-  - **Dart Frog/Backend tasks**: Use `dartfrog-senior-developer` agent.
+  - **Go backend/module tasks**: Use `go-senior-developer` agent for Go implementation, debugging, and tests; inspect `go.mod`/`go.work` or honor an explicit Go stack choice.
+  - **Dart Frog backend tasks**: Use `dartfrog-senior-developer` agent. Generic backend/API terminology alone does not choose a language.
   - **DevOps/Infrastructure/Docker/CI-CD tasks**: Use `devops-specialist` agent.
   - **Default**: Use `self` or prompt the user for guidance.
 - **Reviewer Agent Selection** (unless overridden by `reviewer_agent` parameter):
   - **Dart/Flutter/Dart Frog**: Use `dart-senior-reviewer` agent.
+  - **Go**: Use a separate review invocation of `go-senior-developer` with a pinned target and acceptance criteria; its workflow separates Standards and Spec findings. Implementation self-review is not independent approval.
   - **Default**: Use a peer developer agent or prompt the user for guidance.
 - **Architectural Audit** (triggered on demand or by reviewer escalation):
   - Use `senior-architect` when:

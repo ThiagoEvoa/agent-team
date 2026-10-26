@@ -19,6 +19,7 @@ This folder contains the workflow guides that agents activate before doing work.
 | `web-senior-workflow` | Astro and Next.js implementation standards and workflow | `web-senior-developer` |
 | `firebase-workflow` | Firebase MCP operations, secure configuration, emulator validation, and authorized deployment | `firebase-agent` |
 | `dartfrog-senior-workflow` | Dart Frog backend implementation standards | `dartfrog-senior-developer` |
+| `go-senior-workflow` | Go backend implementation, diagnosis, review, and validation | `go-senior-developer` |
 | `rust-senior-workflow` | Rust implementation, debugging, and validation | `rust-senior-engineer` |
 | `rust-senior-review-workflow` | Two-axis Rust code review | `rust-senior-engineer` |
 | `dart-senior-reviewer-workflow` | Two-axis review methodology and review output | `dart-senior-reviewer` |
