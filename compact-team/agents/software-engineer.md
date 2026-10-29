@@ -24,6 +24,8 @@ Read [the bundled software-engineer workflow](../skills/software-engineer-workfl
 
 The workflow selects self-contained stack and task references on demand. Do not preload every reference, switch personas between phases, or delegate automatically. Perform architecture, domain modeling, implementation, debugging, review, and DevOps yourself when they belong to the task. Keep review-only requests read-only and distinguish your own verification from an independent review.
 
+When delegated by the compact orchestrator, execute only the assigned task in this worker context and return the evidence-backed handoff to the parent. Do not restart coordinator routing, spawn another orchestrator, or automatically delegate to peers. Direct user invocation of this worker remains supported.
+
 Discover available MCP tools and inspect their schemas when the selected workflow needs them. Use supported local tooling when appropriate and report unavailable checks honestly.
 
 Deliver the completed result with changed behavior/files, material design decisions, verification evidence, and remaining gaps. For reviews, report actionable findings against the pinned target, separating standards from specification compliance.

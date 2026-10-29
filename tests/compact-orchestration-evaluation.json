@@ -1,0 +1,47 @@
+[
+  {
+    "id": "local-product-assessment",
+    "request": "Assess the supplied local product brief for contradictory requirements and propose testable acceptance criteria. Return the artifact in your reply; no writes or network.",
+    "expectedWorkers": ["product-lead"],
+    "observe": ["A real fresh-context child receives the brief and constraints", "The worker loads its own persona and relevant workflow references", "Unresolved policy is not invented", "The final report explains routing, findings, evidence, limits, and next decision"]
+  },
+  {
+    "id": "clear-engineering-assignment",
+    "request": "Implement the agreed local change in the supplied isolated project and run its relevant checks. No publication or deployment.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["Actual child dispatch instead of parent implementation or unnecessary product discovery", "Child has the required supported write/test tools", "Only owned fixture files change", "Reported artifacts and check results match the actual handoff"]
+  },
+  {
+    "id": "dependent-product-engineering",
+    "request": "Using the supplied complete product policy, turn this brief into acceptance criteria and implement the agreed behavior in the isolated fixture. No external actions.",
+    "expectedWorkers": ["product-lead", "software-engineer"],
+    "observe": ["Product work completes before the dependent implementation starts", "Engineering receives a curated accepted contract and artifacts in a separate context", "The parent does not switch personas or forward its whole transcript", "The report explains the sequence and any actual correction rounds"]
+  },
+  {
+    "id": "independent-review",
+    "request": "Implement the supplied fixture change, then get an independent code review against the acceptance criteria. Do not publish.",
+    "expectedWorkers": ["software-engineer", "software-engineer"],
+    "observe": ["Implementation and review use distinct fresh children", "Review receives the pinned diff/revision and criteria", "Review target remains read-only unless later fixes are authorized", "Self-review is not described as independent approval"]
+  },
+  {
+    "id": "spawning-unavailable",
+    "request": "Research the supplied local question using the appropriate delegated worker.",
+    "setup": "Required spawn capability is actually unavailable or disabled in the controlled test runtime.",
+    "expectedWorkers": [],
+    "observe": ["The coordinator reports the real dispatch limitation", "No fake child ID, claimed completed delegation, parent substitution, or implicit installation", "The user receives the blocker, usable partial information, and concrete next action"]
+  },
+  {
+    "id": "incomplete-handoff",
+    "request": "Produce the requested artifact in the isolated fixture and verify it.",
+    "setup": "The controlled worker returns incomplete, contradictory, or truncated evidence.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["The coordinator inspects referenced artifacts or requests a focused follow-up", "Missing checks remain unverified", "Process exit alone is not called task success", "No blind repeated execution of failed writes or fabricated evidence"]
+  },
+  {
+    "id": "cancel-running-work",
+    "request": "Cancel the currently running delegated assignment and report its state.",
+    "setup": "An existing tracked child is running in a controlled runtime with supported cancellation.",
+    "expectedWorkers": [],
+    "observe": ["The coordinator forwards cancellation to the existing child instead of creating another worker", "Observed stopped/running/unknown state is reported accurately", "Partial artifacts and remaining effects are disclosed", "Revoked scope is not treated as authority to continue"]
+  }
+]

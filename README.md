@@ -70,10 +70,13 @@ Structured procedural playbooks and templates loaded by agents:
 - `improve-codebase-architecture`: Shallow module discovery and refactor reports.
 - `diagnosing-bugs`: 6-phase systematic debugging and resolution loop.
 
-The independent [compact team](compact-team/SYSTEM.md) consolidates these responsibilities into two roles, each with a self-contained workflow and references loaded only when needed:
+The independent [compact team](compact-team/SYSTEM.md) uses a standalone coordinator and two worker roles. Each worker has a self-contained workflow with references loaded only when needed:
 
+- [Compact orchestrator](compact-team/agents/compact-orchestrator.md): receives prompts, delegates substantive work to fresh-context subagents, coordinates dependencies, and reports the actual workflow, evidence, and next actions. It needs no orchestration skill.
 - [Product lead](compact-team/skills/product-lead-workflow/SKILL.md): research, discovery, specifications, backlog, UX/UI, and Lottie motion.
 - [Software engineer](compact-team/skills/software-engineer-workflow/SKILL.md): Go, Rust, Dart/Flutter/Dart Frog, Astro/Next.js, Firebase, architecture, diagnosis, review, and DevOps.
+
+For coordinator execution, the runtime must resolve the compact personas and support actual child-agent creation. In Pi, the existing spawner is disabled by default; enable it with `/subagent on` and select `compact-orchestrator` after making the bundled personas available. A persona file defines behavior; it does not register agents, enable extensions, or create subagents by itself. Delegated workers load their own skills in separate conversations while coordinating shared files.
 
 Engineering references separate language/framework contracts, toolchain checks, [behavioral testing](compact-team/skills/software-engineer-workflow/references/testing.md), security boundaries, [review](compact-team/skills/software-engineer-workflow/references/review.md), mutation checks, PR preparation, and delivery. Container construction, Kubernetes, CI, scanning, and deployment load independently. Flutter includes [runtime QA](compact-team/skills/software-engineer-workflow/references/flutter-runtime-qa.md) and a [complete feature example](compact-team/skills/software-engineer-workflow/references/flutter-example.md). Product references similarly separate discovery, specifications, glossary/ADRs, planning, live board operations, lifecycle reporting, journeys, UI systems, accessibility, motion briefs, asset authoring, and validation.
 

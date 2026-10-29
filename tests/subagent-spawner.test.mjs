@@ -10,11 +10,15 @@ process.env.HOME = home;
 mkdirSync(join(home, '.agents/agents'), { recursive: true });
 copyFileSync(new URL('../agents/researcher.md', import.meta.url), join(home, '.agents/agents/researcher.md'));
 copyFileSync(new URL('../agents/README.md', import.meta.url), join(home, '.agents/agents/README.md'));
+for (const agent of ['compact-orchestrator', 'product-lead', 'software-engineer']) {
+  copyFileSync(new URL(`../compact-team/agents/${agent}.md`, import.meta.url), join(home, `.agents/agents/${agent}.md`));
+}
 const fake = join(home, 'fake-pi.mjs');
 writeFileSync(fake, `import {readFileSync} from 'node:fs';
 const args=process.argv.slice(2), prompt=args.at(-1);
 if(prompt==='hang') { process.on('SIGTERM',()=>{}); console.log('ready'); setInterval(()=>{},100); }
 else if(prompt==='large') console.log('x'.repeat(10000));
+else if(prompt==='context-probe') console.log(JSON.stringify({pid:process.pid,args}));
 else console.log(readFileSync(args[args.indexOf('--append-system-prompt')+1],'utf8'));
 `);
 const { default: init } = await import('../extension/subagent-spawner/subagent-spawner.ts');
@@ -76,4 +80,31 @@ test('output cap records truncation', async () => {
   const h=await harness(); const r=await h.run({prompt:'large',agent:'researcher',maxOutputChars:100});
   assert.equal(r.details.truncated,true);
   assert.ok(r.content[0].text.length<200);
+});
+
+test('compact coordinator resolves by its distinct persona name', async () => {
+  const h = await harness();
+  const result = await h.run({prompt:'test',agent:'compact-orchestrator'});
+  assert.equal(result.details.ok,true);
+  assert.equal(result.details.agent.name,'compact-orchestrator');
+  assert.equal(result.details.modelSource,'agent:inherit');
+});
+
+test('compact worker assignments launch separate processes with explicit worker tools', async () => {
+  const h = await harness();
+  const processes = [];
+  for (const agent of ['product-lead','software-engineer']) {
+    const result = await h.run({prompt:'context-probe',agent,tools:['read','write','edit','bash']});
+    assert.equal(result.details.ok,true);
+    assert.equal(result.details.agent.name,agent);
+    const invocation = JSON.parse(result.content[0].text);
+    processes.push(invocation.pid);
+    assert.equal(invocation.args.at(-1),'context-probe');
+    assert.equal(invocation.args[invocation.args.indexOf('--tools')+1],'read,write,edit,bash');
+    assert.ok(!invocation.args.includes('--continue'));
+    assert.ok(!invocation.args.includes('--resume'));
+    assert.ok(!invocation.args.includes('--session'));
+    assert.ok(!invocation.args.includes('inherit'));
+  }
+  assert.notEqual(processes[0],processes[1]);
 });
