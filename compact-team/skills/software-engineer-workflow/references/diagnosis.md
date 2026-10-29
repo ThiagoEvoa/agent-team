@@ -1,6 +1,6 @@
 # Reproduction and diagnosis
 
-Use this loop with the affected stack's commands. Redact credentials and private data in commands, fixtures, logs, and captured traces. Read relevant domain invariants and architecture decisions first.
+Use this loop with the affected stack's commands and the [behavioral testing guidelines](testing.md) when writing a reproduction or regression test. Redact credentials and private data in commands, fixtures, logs, and captured traces. Read relevant domain invariants and architecture decisions first.
 
 1. **Establish a sharp failing signal.** Run a focused command that exercises the reported symptom and asserts its exact result. Prefer a unit/widget/handler test, CLI fixture, endpoint request with assertions, rules emulator test, or replay of a captured event. Use a measured benchmark/profile for performance regressions. Record the command and actual failure before modifying production code. If unavailable hardware, access, or environment prevents reproduction, gather bounded evidence, identify the limitation, and avoid claiming a verified cause.
 2. **Reproduce and minimize.** Confirm this is the reported failure. Remove inputs/dependencies one at a time while rerunning the check. For races, use controlled synchronization or a measured repeatable stress loop; arbitrary sleeps are weak evidence. Use bisection when history identifies a useful regression range.

@@ -2,6 +2,8 @@
 
 Read only for workspace/package structure, generation, or route integration. Preserve existing architecture and dependency choices. For a new application, inspect the installed `flutter_workspaces_cli` and SDK before choosing commands or package constraints; use `fws create` when compatible and available. Do not copy hardcoded SDK/package versions from unrelated examples.
 
+When the project lacks a useful feature example, read the [portable Flutter feature example](flutter-example.md) for model/repository/ViewModel/view composition and outcome-based tests. Adapt it to the existing state-management and persistence contracts rather than treating it as a mandatory scaffold.
+
 A typical workspace contains a root `pubspec.yaml` enumerating workspace members, an application shell, genuinely shared packages, and feature packages. Member packages use `resolution: workspace` when supported by the chosen Dart SDK. Resolve dependencies at the workspace root using its established tooling and lockfile policy. Declare package dependencies explicitly; do not rely on accidental transitive resolution.
 
 The application shell owns startup, dependency assembly, theme/localization, and route composition. A feature package owns its behavior and exposes a compact public library. A possible shape is:

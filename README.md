@@ -10,6 +10,7 @@ Complete multi-agent development ecosystem for the `pi` coding assistant. Integr
 agent-team/
 ├── agents/                  # Specialized agent role definitions (Markdown)
 ├── skills/                  # Procedural workflows, playbooks, and templates
+├── compact-team/            # Independent two-role bundle with on-demand references
 ├── scripts/                 # Automation helper scripts for agent loops & extraction
 ├── extension/               # TypeScript extensions for pi agent runtime
 ├── pi-config/               # Baseline pi settings, MCP configs, models, and SYSTEM prompt
@@ -69,7 +70,16 @@ Structured procedural playbooks and templates loaded by agents:
 - `improve-codebase-architecture`: Shallow module discovery and refactor reports.
 - `diagnosing-bugs`: 6-phase systematic debugging and resolution loop.
 
-The independent [compact team](compact-team/SYSTEM.md) includes Go in its existing `software-engineer` agent and workflow, with a bundled [Go profile](compact-team/skills/software-engineer-workflow/references/go.md) loaded only for Go work.
+The independent [compact team](compact-team/SYSTEM.md) consolidates these responsibilities into two roles, each with a self-contained workflow and references loaded only when needed:
+
+- [Product lead](compact-team/skills/product-lead-workflow/SKILL.md): research, discovery, specifications, backlog, UX/UI, and Lottie motion.
+- [Software engineer](compact-team/skills/software-engineer-workflow/SKILL.md): Go, Rust, Dart/Flutter/Dart Frog, Astro/Next.js, Firebase, architecture, diagnosis, review, and DevOps.
+
+Engineering references separate language/framework contracts, toolchain checks, [behavioral testing](compact-team/skills/software-engineer-workflow/references/testing.md), security boundaries, [review](compact-team/skills/software-engineer-workflow/references/review.md), mutation checks, PR preparation, and delivery. Container construction, Kubernetes, CI, scanning, and deployment load independently. Flutter includes [runtime QA](compact-team/skills/software-engineer-workflow/references/flutter-runtime-qa.md) and a [complete feature example](compact-team/skills/software-engineer-workflow/references/flutter-example.md). Product references similarly separate discovery, specifications, glossary/ADRs, planning, live board operations, lifecycle reporting, journeys, UI systems, accessibility, motion briefs, asset authoring, and validation.
+
+Each reference owns one independently requested responsibility; links are conditional rather than recursive preload instructions. Both workflow folders remain self-contained, with no dependency on the specialist tree or team helper scripts. Use the bundled personas and preserve their relative folder structure; selecting a similarly named installed skill is not equivalent.
+
+See [compact evaluation](tests/compact-team-evaluation.md) for routing/reference-selection cases and reuse of the isolated Rust behavior fixtures. Static validation and fixture checks do not measure agent performance; actual model evaluations are separate runs.
 
 #### Firebase MCP
 

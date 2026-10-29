@@ -1,0 +1,432 @@
+[
+  {
+    "id": "research-provider",
+    "prompt": "Compare OAuth providers for our product",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/research.md"
+    ]
+  },
+  {
+    "id": "spec-checkout",
+    "prompt": "Specify checkout behavior and acceptance criteria",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/specification.md"
+    ]
+  },
+  {
+    "id": "design-screen",
+    "prompt": "Design a Flutter login screen and its error states",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/ux-flows.md",
+      "product-lead-workflow/references/ui-system.md"
+    ]
+  },
+  {
+    "id": "review-design",
+    "prompt": "Review the supplied mobile navigation design for usability and accessibility",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/ux-flows.md",
+      "product-lead-workflow/references/accessibility.md"
+    ]
+  },
+  {
+    "id": "backlog-update",
+    "prompt": "Prioritize the existing issues and update the approved project board",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/backlog.md",
+      "product-lead-workflow/references/github-projects.md"
+    ]
+  },
+  {
+    "id": "motion-asset",
+    "prompt": "Edit the supplied success Lottie animation and document its playback contract",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/lottie.md",
+      "product-lead-workflow/references/lottie-validation.md"
+    ]
+  },
+  {
+    "id": "motion-integration",
+    "prompt": "Integrate the existing success animation into our Flutter app",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md"
+    ]
+  },
+  {
+    "id": "flutter-implementation",
+    "prompt": "Implement the agreed login screen in our existing Flutter app",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/security-auth.md"
+    ]
+  },
+  {
+    "id": "flutter-tests",
+    "prompt": "Write behavioral widget tests using the real feature components in our Flutter app",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/testing.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/flutter-runtime-qa.md",
+      "software-engineer-workflow/references/dartfrog.md"
+    ]
+  },
+  {
+    "id": "flutter-runtime-qa",
+    "prompt": "Launch our Flutter app on the available simulator and test the login journey",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/flutter-runtime-qa.md"
+    ]
+  },
+  {
+    "id": "flutter-review",
+    "prompt": "Review the Flutter pull request for correctness and spec fidelity",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/review.md"
+    ]
+  },
+  {
+    "id": "dart-package",
+    "prompt": "Fix a parsing regression in this plain Dart package; it has no Flutter dependency",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/dart.md",
+      "software-engineer-workflow/references/diagnosis.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/dartfrog.md",
+      "software-engineer-workflow/references/flutter-workspace.md"
+    ]
+  },
+  {
+    "id": "dartfrog-api",
+    "prompt": "Add the agreed route to our existing Dart Frog API",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/dartfrog.md"
+    ]
+  },
+  {
+    "id": "go-api",
+    "prompt": "Implement a Go HTTP API in this existing go.mod module",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/go-http.md"
+    ]
+  },
+  {
+    "id": "go-cancellation",
+    "prompt": "Fix a goroutine leak in our Go service",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/diagnosis.md",
+      "software-engineer-workflow/references/go-concurrency.md"
+    ]
+  },
+  {
+    "id": "go-research",
+    "prompt": "Research Go HTTP router options for a future project",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/research.md"
+    ]
+  },
+  {
+    "id": "rust-implementation",
+    "prompt": "Implement the specified command in our Rust Cargo workspace",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/rust.md"
+    ]
+  },
+  {
+    "id": "rust-review",
+    "prompt": "Review the Rust crate changes for public API compatibility",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/rust.md",
+      "software-engineer-workflow/references/rust-validation.md",
+      "software-engineer-workflow/references/review.md",
+      "software-engineer-workflow/references/rust-review.md"
+    ]
+  },
+  {
+    "id": "astro-site",
+    "prompt": "Implement the supplied marketing design in our Astro site",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/astro.md",
+      "software-engineer-workflow/references/web.md"
+    ]
+  },
+  {
+    "id": "next-cache",
+    "prompt": "Diagnose stale data after a mutation in our Next.js dashboard",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/nextjs.md",
+      "software-engineer-workflow/references/diagnosis.md"
+    ]
+  },
+  {
+    "id": "firebase-rules",
+    "prompt": "Implement Firestore Security Rules and test tenant isolation",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/firebase.md",
+      "software-engineer-workflow/references/testing.md",
+      "software-engineer-workflow/references/security-auth.md",
+      "software-engineer-workflow/references/firebase-validation.md"
+    ]
+  },
+  {
+    "id": "firebase-review",
+    "prompt": "Review the Firebase Security Rules against the access requirements",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/firebase.md",
+      "software-engineer-workflow/references/review.md",
+      "software-engineer-workflow/references/security-auth.md",
+      "software-engineer-workflow/references/firebase-validation.md"
+    ]
+  },
+  {
+    "id": "functions-package",
+    "prompt": "This package.json belongs to Firebase Functions, not a website; fix its retry behavior",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/firebase.md",
+      "software-engineer-workflow/references/diagnosis.md",
+      "software-engineer-workflow/references/firebase-validation.md"
+    ]
+  },
+  {
+    "id": "cross-stack-ci",
+    "prompt": "Dockerize the Rust service and add its GitHub Actions checks",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/rust.md",
+      "software-engineer-workflow/references/docker.md",
+      "software-engineer-workflow/references/ci-cd.md"
+    ]
+  },
+  {
+    "id": "architecture",
+    "prompt": "Audit module coupling and propose deeper interfaces for this codebase",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/design.md",
+      "software-engineer-workflow/references/architecture-audit.md"
+    ]
+  },
+  {
+    "id": "technical-design",
+    "prompt": "Design checkout API boundaries and transaction ownership in our Go service",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/design.md",
+      "software-engineer-workflow/references/go-persistence.md"
+    ]
+  },
+  {
+    "id": "repeat-review",
+    "prompt": "The same structural defect remains after several review fixes; diagnose and correct it in our Go service",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/diagnosis.md",
+      "software-engineer-workflow/references/delivery.md"
+    ]
+  },
+  {
+    "id": "pr-description",
+    "prompt": "Prepare a PR description for the completed Go changes and their actual test results",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/pr-standards.md"
+    ]
+  },
+  {
+    "id": "not-a-stack-keyword",
+    "prompt": "Go ahead and plan the user requirements for account recovery",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/specification.md"
+    ]
+  },
+  {
+    "id": "agreed-spec",
+    "prompt": "Turn the already agreed feature requirements into a specification; no discovery interview is needed",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/specification.md"
+    ],
+    "unnecessaryReferences": [
+      "product-lead-workflow/references/discovery.md",
+      "product-lead-workflow/references/architecture-decisions.md"
+    ]
+  },
+  {
+    "id": "backlog-plan",
+    "prompt": "Propose priorities for these supplied work items; do not access or change a live board",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/backlog.md"
+    ],
+    "unnecessaryReferences": [
+      "product-lead-workflow/references/github-projects.md"
+    ]
+  },
+  {
+    "id": "board-schema",
+    "prompt": "Inspect the live project fields so we can map its status options",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/github-projects.md"
+    ],
+    "unnecessaryReferences": [
+      "product-lead-workflow/references/backlog.md",
+      "product-lead-workflow/references/specification.md"
+    ]
+  },
+  {
+    "id": "motion-brief",
+    "prompt": "Specify timing and choreography for a success transition; no animation asset is needed yet",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/motion-design.md"
+    ],
+    "unnecessaryReferences": [
+      "product-lead-workflow/references/lottie.md",
+      "product-lead-workflow/references/lottie-validation.md"
+    ]
+  },
+  {
+    "id": "motion-review",
+    "prompt": "Review this supplied Lottie asset for target-player compatibility; no editing is requested",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/lottie-validation.md"
+    ],
+    "unnecessaryReferences": [
+      "product-lead-workflow/references/lottie.md",
+      "product-lead-workflow/references/motion-design.md"
+    ]
+  },
+  {
+    "id": "visual-tokens",
+    "prompt": "Specify component variants and typography/color tokens for the supplied screen",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/ui-system.md"
+    ],
+    "unnecessaryReferences": [
+      "product-lead-workflow/references/specification.md",
+      "product-lead-workflow/references/backlog.md"
+    ]
+  },
+  {
+    "id": "a11y-review",
+    "prompt": "Assess the supplied screen design for keyboard access and text scaling",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/accessibility.md"
+    ]
+  },
+  {
+    "id": "record-adr",
+    "prompt": "Record our agreed architecture trade-off as an ADR",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/architecture-decisions.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/design.md",
+      "software-engineer-workflow/references/architecture-audit.md"
+    ]
+  },
+  {
+    "id": "domain-term",
+    "prompt": "Clarify the business meaning of Order and update CONTEXT.md",
+    "expectedAgent": "product-lead",
+    "expectedReferences": [
+      "product-lead-workflow/references/domain-language.md"
+    ]
+  },
+  {
+    "id": "go-sql",
+    "prompt": "Fix transaction rollback behavior in our Go repository",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/go-persistence.md",
+      "software-engineer-workflow/references/diagnosis.md",
+      "software-engineer-workflow/references/data-integrity.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/go-http.md"
+    ]
+  },
+  {
+    "id": "scan-image",
+    "prompt": "Run the configured vulnerability scan against the already-built image",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/security-scanning.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/docker.md",
+      "software-engineer-workflow/references/kubernetes.md",
+      "software-engineer-workflow/references/deployment.md"
+    ]
+  },
+  {
+    "id": "kube-probes",
+    "prompt": "Update the Kubernetes readiness and liveness configuration",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/kubernetes.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/docker.md",
+      "software-engineer-workflow/references/ci-cd.md"
+    ]
+  },
+  {
+    "id": "mutate-tests",
+    "prompt": "Evaluate the assertions on these Go changes with the existing mutation tool",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/go.md",
+      "software-engineer-workflow/references/mutation-testing.md"
+    ]
+  },
+  {
+    "id": "firebase-cloud",
+    "prompt": "Deploy only the approved Firebase Hosting target to staging",
+    "expectedAgent": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/firebase-targets.md",
+      "software-engineer-workflow/references/firebase-operations.md"
+    ]
+  }
+]

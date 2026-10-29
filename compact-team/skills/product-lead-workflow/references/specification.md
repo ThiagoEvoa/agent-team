@@ -1,16 +1,6 @@
-# Discovery, domain language, and specifications
+# Testable feature specifications
 
-## Discover only what is missing
-
-Read agreed requirements, existing behavior, domain terms, and architecture decisions. For a new or ambiguous idea, identify users, problem, desired outcome/success measure, platform/scope, constraints, and consequential edge cases. Investigate facts yourself, then ask small decision-focused rounds with a recommended option and its trade-off when useful. Do not require an interview before drafting a clear, already-agreed request.
-
-Resolve the next load-bearing uncertainty before exploring dependent details. Use concrete scenarios: permissions, empty/loading/error states, invalid input, partial failure, retries, offline behavior, cancellation, accessibility, and localization only where they affect this feature. Distinguish functional intent from a technical choice; do not lock in frameworks or fragile file layouts prematurely.
-
-Keep business terminology consistent. Create/update `CONTEXT.md` when a concept is clarified, grouped alphabetically or by bounded context. Describe entities, relationships, and business invariants; exclude framework classes, implementation paths, and architectural scratch notes. Flag contradictions between glossary, behavior, and requirements rather than silently changing policy.
-
-Record an ADR only for a real trade-off that is hard to reverse and surprising without context. Use the project's convention or `docs/adr/NNNN-short-title.md`, containing context/constraints, options, decision/status, consequences, and preserved invariants. Do not record every routine choice or label an unaccepted proposal as accepted.
-
-## Synthesize a testable spec
+Use to synthesize or assess agreed requirements. Load [discovery](discovery.md) only for material unresolved choices; glossary/ADR edits have their own references.
 
 Use the project's template when present; otherwise use the structure below. Keep detail proportional to the feature. Derive decisions from the actual conversation and evidence; label proposed defaults, open questions, and feasibility checks. Draft unresolved work honestly rather than marking it ready.
 
@@ -49,6 +39,6 @@ Select the highest useful external seam: feature operation, ViewModel/controller
 
 Check requirement coverage and specification quality separately. Verify numbered stories, testable criteria, consistent domain rules, implementation contracts, an explicit test seam, and out-of-scope boundaries. Identify missing decisions, contradictory states, unsupported technical claims, and added scope. Do not declare readiness when material questions or dependencies prevent implementation/testing.
 
-Write the requested local artifact first. Publish to an issue tracker only when authorized for that destination; inspect existing issues/templates/labels and avoid duplicates. A `spec` or `ready-for-agent` label is a project convention to verify, not evidence of completeness. Use [backlog guidance](backlog.md) for item ingestion and status changes. Do not automatically publish, label, or block an existing issue because a local draft is incomplete.
+Write the requested local artifact first. Publish to an issue tracker only when authorized for that destination; inspect existing issues/templates/labels and avoid duplicates. A `spec` or `ready-for-agent` label is a project convention to verify, not evidence of completeness. Use [backlog planning](backlog.md) for item decomposition and [GitHub Projects](github-projects.md) for authorized publication/status writes. Do not automatically publish, label, or block an existing issue because a local draft is incomplete.
 
 Handoff should let an engineer implement without inventing product behavior: accepted scope, contracts, criteria, test seams, domain terms, design/assets, decisions, and remaining uncertainty. No application implementation or automatic specialist invocation is required.

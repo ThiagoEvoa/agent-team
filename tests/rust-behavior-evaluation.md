@@ -12,6 +12,8 @@ Other case IDs: `async-cancellation`, `public-api-review`, `clean-review`. The p
 
 Run each task in a fresh session with the current Rust agent and skills. Give that session only `TASK.md` and access to its fixture repository, not the dataset or this evaluator guide. Allow local edits for implementation cases; keep review cases read-only apart from build artifacts. Preserve the session transcript, commands, final diff, and review findings outside the fixture. Use a fresh prepared copy for each attempt. Do not run fixtures against an application repository or production resources.
 
+The same tasks can evaluate the compact `software-engineer` with `compact-team/SYSTEM.md` and its bundled workflow; see [compact evaluation](compact-team-evaluation.md). Keep the fixture, model/version, and tool availability comparable between variants, and report results per variant rather than treating shared fixture checks as evidence of equal agent performance.
+
 Score each attempt against the case's rubric after it finishes:
 
 - Record each required behavior as pass, fail, or unobserved, with transcript or file evidence. An unobserved behavior does not count as a pass.

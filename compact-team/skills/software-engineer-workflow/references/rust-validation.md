@@ -18,3 +18,18 @@ For unsafe changes, add tests at the affected invariant boundary. Use Miri when 
 For each failure, record the diagnostic and configuration. If attribution matters, reproduce against the pinned base in a separate checkout without disturbing the user's working tree. Preserve the same toolchain and dependency selection. Classify a failure as pre-existing only with evidence; otherwise leave its attribution unresolved. Do not clean up unrelated warnings merely to satisfy a new strict flag.
 
 Authoritative references: [MSRV](https://doc.rust-lang.org/cargo/reference/rust-version.html), [features](https://doc.rust-lang.org/cargo/reference/features.html), [Cargo test](https://doc.rust-lang.org/cargo/commands/cargo-test.html), [SemVer compatibility](https://doc.rust-lang.org/cargo/reference/semver.html), [Miri limitations](https://github.com/rust-lang/miri#readme).
+
+## Baseline commands and reproduction
+
+Use the shared [diagnosis loop](diagnosis.md) with a focused Cargo test/CLI/router reproduction. Use controlled async coordination rather than arbitrary sleeps. Retain a regression check and rerun the original scenario.
+
+Use repository commands first. Start with the affected package/test; broaden to consumers/workspace for shared contracts. Typical workspace checks are:
+
+```text
+cargo fmt --all -- --check
+cargo check --workspace --all-targets
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+Apply the project's lint policy instead of introducing unrelated cleanup. Use the decision table above for MSRV, features, targets, dependencies, docs, or unsafe changes. Cargo default members can omit crates; current-toolchain and all-features passes alone do not establish supported configuration coverage. Record actual toolchain, feature/target selection, command outcomes, and skipped checks.
