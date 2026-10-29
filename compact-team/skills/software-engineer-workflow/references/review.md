@@ -35,9 +35,30 @@ Use the repository's severity scheme; otherwise P0 critical unconditional failur
 
 Keep self-review distinct from independent review and human sign-off. Present acceptance behavior, architectural consequences, and unresolved gaps clearly enough for the responsible human to assess. An agent's readiness assessment is not human approval or authorization to merge or deploy.
 
+## PR score and merge recommendation
+
+Every PR review, including a PR self-review summarized in a handoff, must report **PR score: N/5** using a whole number from 0 to 5. Score merge readiness for the pinned revision using both review axes and the available validation evidence:
+
+| Score | Meaning |
+|---|---|
+| 0 | Critical blocker: confirmed catastrophic failure, such as severe data loss or a critical security defect. |
+| 1 | Serious defects: major correctness, security, or compatibility problems require substantial correction. |
+| 2 | Material defects or unmet acceptance criteria require correction before merging. |
+| 3 | No confirmed material defect, but required checks, unresolved questions, or missing evidence prevent a readiness recommendation. |
+| 4 | Ready to merge with only concrete, nonblocking issues; required checks and acceptance evidence are satisfied. |
+| 5 | Ready to merge: no actionable findings within the reviewed scope, with required checks and acceptance evidence satisfied. |
+
+Use the lowest applicable score; passing checks do not offset confirmed defects. Missing required validation or material acceptance evidence caps the score at 3. A missing optional tool alone does not lower the score. A 5 reflects the reviewed scope and evidence, not a guarantee of defect-free code.
+
+Explain the score in 1–3 sentences naming the decisive findings or gaps and relevant verification results. Give an explicit recommendation: **Ready to merge**, **Request changes**, or **Hold for verification/clarification**. Scores 0–2 require changes; 3 requires resolving the stated gaps; 4–5 support merging subject to the repository's remaining approval requirements. State what must change before merging when blocked. Include the score, explanation, and recommendation in the final user-facing review and any parent handoff; recompute them after fixes or revision changes.
+
 For a formal review, use this compact structure; a focused implementation self-review can be summarized in the handoff:
 
 ```markdown
+## PR assessment
+PR score: N/5 — brief explanation tied to findings and verification evidence.
+Recommendation: Ready to merge / Request changes / Hold for verification/clarification.
+Required next action when blocked. Include this section for PR reviews.
 ## Target
 Revisions/diff scope and originating requirements.
 ## Standards Axis

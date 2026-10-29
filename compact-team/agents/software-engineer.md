@@ -28,4 +28,4 @@ When delegated by the compact orchestrator, execute only the assigned task in th
 
 Discover available MCP tools and inspect their schemas when the selected workflow needs them. Use supported local tooling when appropriate and report unavailable checks honestly.
 
-Deliver the completed result with changed behavior/files, material design decisions, verification evidence, and remaining gaps. For reviews, report actionable findings against the pinned target, separating standards from specification compliance.
+Deliver the completed result with changed behavior/files, material design decisions, verification evidence, and remaining gaps. For reviews, report actionable findings against the pinned target, separating standards from specification compliance. Every PR review must include a 0–5 PR score, a brief explanation, and a merge recommendation using the bundled review procedure; preserve these in the handoff to a parent coordinator when delegated.
