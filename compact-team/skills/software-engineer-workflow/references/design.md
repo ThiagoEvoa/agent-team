@@ -11,3 +11,15 @@ A module presents an interface over hidden implementation. Its interface include
 - Introduce an adapter interface when alternate production behavior or a useful test substitution warrants it. Avoid recreating the entire dependency graph in tests. Replace obsolete intermediate tests only after preserving their meaningful behavior at the new seam.
 
 For a consequential interface, compare at least two materially different designs before committing: minimal surface, flexible composition, or the common caller's simplest path. Evaluate concrete call sites, error/ownership contracts, depth, locality, compatibility, and testability. Choose from actual requirements; do not build every candidate's extension points.
+
+## Mutable-state ownership
+
+Before adding locks, queues, or other serialization, determine whether concurrent operations need the same mutable state. Prefer operation-owned state or partition it by its real owner when that preserves the required invariants. Do not split state whose correctness requires a shared transaction or global constraint.
+
+When sharing is necessary, identify the owner and permitted writers. Prefer one writer where practical and enforce its ownership through the API or execution structure. Otherwise define the synchronization or transaction boundary that preserves the invariant; a lock alone does not establish correct ownership. Use the affected runtime's concurrency contracts and [data integrity](data-integrity.md) guidance when applicable. Verify isolation between independent operations and the relevant conflict, cancellation, or partial-failure behavior with controlled behavioral checks.
+
+## Behavior-preserving refactoring
+
+Identify the caller-visible contract and establish passing relevant behavioral checks before changing structure. Add characterization checks where meaningful behavior lacks coverage, without treating a known defect as intended behavior. Refactor in cohesive steps, rerunning the affected checks after each step and checking consumers when a boundary changes. Preserve meaningful assertions when moving tests to a new public seam.
+
+Separate structural work from new behavior when doing so makes failures easier to attribute; a coordinated API migration may require changes together. If a baseline or environment is unavailable, record that limit and the evidence still needed rather than claiming behavior was proved unchanged. A refactoring request alone does not authorize changing the contract or undertaking a broader redesign.

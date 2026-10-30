@@ -52,6 +52,10 @@ The assertions check the business result and state. They do not verify calls to 
 
 ## Keep tests trustworthy
 
-For a bug, establish that the regression scenario fails for the reported reason before the fix and passes afterward. For new behavior, establish the expected outcome before implementation where practical. Keep fixtures minimal and explicit; avoid shared mutable globals, real-time sleeps, and ordering dependencies between tests. Use controlled synchronization and bounded waits for asynchronous work.
+For a bug, establish that the regression scenario fails for the reported reason before the fix and passes afterward. For new behavior with a practical automated seam, write a meaningful behavioral check before implementation, run it, and confirm that it fails because the required behavior is missing. Then implement the smallest complete change and rerun the same check. Retain the command and observed before/after outcomes in the task evidence; a predicted failure is not an observed one. Missing dependencies, syntax errors, or unrelated baseline failures do not establish the missing behavior. Minimal API declarations may be needed to reach the behavioral assertion.
+
+If a meaningful automated check is impractical or the required environment is unavailable, state the reason and use the available runtime, manual, or narrower checks with their limits. Do not create a token test or claim an unobserved failure. For changes without a behavioral effect, use relevant existing checks rather than inventing a failing test.
+
+Keep fixtures minimal and explicit; avoid shared mutable globals, real-time sleeps, and ordering dependencies between tests. Use controlled synchronization and bounded waits for asynchronous work.
 
 Run focused scenarios while iterating, then the repository's required checks and affected consumers. Report commands, configuration, actual outcomes, and skipped checks. During [review](review.md), assess whether assertions would detect an incorrect observable result and whether doubles hide the behavior under change. Do not rewrite unrelated existing tests solely to enforce a preferred style.

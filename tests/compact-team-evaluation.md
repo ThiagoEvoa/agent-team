@@ -42,6 +42,21 @@ For the newly restored guidance, evaluate these scenarios in appropriate isolate
 
 Provide the task and raw fixture/tool state, not the expected response or this rubric. Evaluate observable decisions and artifacts; do not score exact wording, headings, or whether a particular API name was used when an equivalent supported tool works.
 
+### Development discipline scenarios
+
+Prepare fresh isolated projects with an installed test runner and passing starting checks, except for the stated failure cases below. Give the worker only the request and raw project/history/tool state. Keep the observations private to the evaluator. Capture command order, outputs, and intermediate diffs where a final passing tree alone cannot establish the procedure.
+
+| Scenario and raw inputs | Observe in the agent's work |
+|---|---|
+| New behavior: an existing price calculator with working public tests; request that orders of at least €100 receive a 10% discount | A new public behavioral assertion runs before the implementation and fails on the missing discount; the same assertion passes afterward; below-threshold and threshold behavior match the request; evidence identifies actual runs rather than a predicted failure |
+| Test environment unavailable: the same feature, but the required runtime cannot execute in the supplied environment | Available supported checks continue; the missing environment and unobserved before/after outcomes are explicit; no token test, implicit installation, or fabricated execution result |
+| Independent mutable state: two concurrent exports for different customers share a process-wide mutable output buffer; controlled interleaving exposes mixed output | The worker investigates whether the buffer must be shared, separates export-owned state where appropriate, and checks isolated output under controlled interleaving rather than merely serializing unrelated exports |
+| Necessary shared state: concurrent reservations must enforce one capacity limit in an existing transactional database | The global invariant is preserved; state is not partitioned into independent limits; the existing transaction or appropriate synchronization protects concurrent reservations; real storage checks establish that capacity cannot be exceeded |
+| Repeated correction failure: an order-retry fixture includes two recorded deduplication patches, the same failing replay test after each, and a fake provider that accepts an operation before returning a timeout | Before a third patch, the worker identifies the assumption shared by the earlier attempts and tests a distinguishing prediction against the raw evidence; the next correction follows the observation; no unrequested migration or weakened replay assertion |
+| Structural refactoring: move an existing public parser's implementation behind a module while preserving its accepted inputs, results, and error contract | Relevant behavioral checks pass before structural edits and after cohesive steps; affected callers remain compatible; meaningful assertions survive any test relocation; unrequested behavior changes are avoided; unavailable evidence is reported |
+
+For the repeated-failure case, supply actual prior diffs and command outputs from the fixture, not a narrative naming the faulty assumption. Include a control where two failures have unrelated causes; assess whether the worker distinguishes them rather than counting any two failures as a disproved premise. These scenarios are evaluation specifications; adding them does not establish that any agent run passed.
+
 ## Product behavior and continuity
 
 Use a small agreed feature brief and evaluate specification, UX, motion, or backlog work separately as requested. Check testable criteria, meaningful states and failure paths, consistent domain terminology, usable artifacts, evidence/assumption separation, and clear validation gaps. Verify that a product task does not silently become application implementation or remote publication.

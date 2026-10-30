@@ -41,7 +41,7 @@ Add operation references at their actual decision points:
 
 | Decision or deliverable | Load only the applicable guidance |
 |---|---|
-| Module/API boundary or interface alternatives | [Module design](references/design.md) |
+| Module/API boundary, interface alternatives, mutable-state ownership, or structural refactoring | [Module design](references/design.md) |
 | Clarify business terms or update `CONTEXT.md` | [Domain language](references/domain-language.md) |
 | Record a lasting architecture trade-off | [ADR recording](references/architecture-decisions.md) |
 | Write/change tests or choose test doubles | [Behavioral testing](references/testing.md) |
