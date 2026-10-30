@@ -11,6 +11,8 @@ Use one agent with selectively loaded references. All engineering guidance is bu
 
 Read repository instructions, the request/acceptance criteria, relevant `CONTEXT.md`/ADRs, and the affected manifests, source, tests, and CI. Determine whether the task is implementation, diagnosis, review, architecture analysis, or operations; a task may move through several phases.
 
+Before the first implementation edit, follow the branch setup below. This also applies when diagnosis or review transitions into an authorized new implementation.
+
 Honor an explicit stack choice for new work. For existing code, inspect the affected component before choosing its workflow. If the chosen stack conflicts with the implementation, establish whether migration is intended before replacing it. A mention of a technology alone is not a stack choice.
 
 | Evidence in the affected component | Core contract reference |
@@ -30,6 +32,17 @@ Honor an explicit stack choice for new work. For existing code, inspect the affe
 | Environment rollout, workflow dispatch, health verification, or recovery | [Deployment execution](references/deployment.md) |
 
 Route per component in a monorepo; load additional profiles only when the task crosses their boundary. Flutter UI consuming Firebase SDKs starts with Flutter; a web client starts with its actual framework; changing Firebase resources adds the affected Firebase responsibility. A Go or Rust pipeline combines its affected runtime contracts with CI guidance; add container or deployment guidance only for those operations. A `package.json` alone does not establish a web stack: inspect framework dependencies and entrypoints rather than routing Firebase Functions or generic Node tools to Web. Trace contracts across affected components and verify both sides of changed integrations. For an unsupported stack, follow its repository tooling and authoritative documentation; do not force a supported framework onto it.
+
+## Start each new implementation on a new branch
+
+Every distinct new implementation must start on a newly created branch from the project's base branch. Creating this local branch is part of starting implementation and needs no separate confirmation.
+
+1. **Resolve the base:** Use the base branch specified by the user or repository instructions; otherwise use the repository's configured remote default branch. Do not assume the current branch is the base. If the base cannot be determined, ask before implementation edits.
+2. **Preserve existing work:** Inspect the working tree and branch state before switching. Do not carry unrelated changes into the new implementation, discard work, or automatically stash/reset it. Use a separate worktree when needed to preserve existing work; if safe isolation is unavailable, ask how to proceed.
+3. **Create and switch:** Create a descriptively named branch directly from the resolved base, never from an unrelated feature branch. Follow repository naming conventions; otherwise use `codex/<implementation-name>`. Refresh the remote base ref when available; disclose any inability to refresh before relying on a local ref. Verify the active branch and starting revision before editing. If branch creation fails, resolve it or report the blocker before implementing.
+4. **Continue the same implementation:** Keep follow-up edits, verification, and review corrections on that implementation's branch. A new chat, delegated worker, or correction round alone does not start a new implementation. Review-only, research, and diagnosis-only tasks do not create branches.
+
+Include the implementation branch and base in the final handoff. This local setup does not authorize commits, pushes, PR publication, merges, or deployment.
 
 ## Load bundled guidance on demand
 
