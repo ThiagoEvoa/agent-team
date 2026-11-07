@@ -4,7 +4,7 @@ Review intent, executable behavior, test strength, and structure. Use tool resul
 
 ## Pin the target and criteria
 
-Pin the scope: exact base/head for a PR or commit range; `HEAD` and staged/unstaged scope for local changes; revision and included local changes for a full audit. Preserve a diff snapshot when the working tree may change. Read the originating requirements and ADRs. If the target changes, revalidate affected findings. Do not reset user work to make review easier.
+Pin the scope: exact base/head for a PR or commit range; `HEAD` and staged/unstaged scope for local changes; revision and included local changes for a full audit. Preserve a diff snapshot when the working tree may change. Read the originating requirements and ADRs. If the target changes, revalidate affected findings. Always return the exact reviewed head SHA for a PR review; a score for a prior head does not establish readiness of the current head. Report a target change and any evidence that remains stale. Do not reset user work to make review easier.
 
 ## Review on two axes
 
@@ -27,7 +27,7 @@ For affected boundaries, select [authorization](security-auth.md), [input valida
 
 ## Findings and readiness
 
-State each finding's trigger, caller impact, exact file/line, evidence, and proportionate correction. Report a defect once, cross-referencing it if both axes apply. Keep unproven hypotheses under open questions, with evidence needed to resolve them. Empty axes may have no findings. A smell is a prompt to investigate, not a quota: report demonstrated maintenance cost rather than a pattern name alone.
+Give each finding a stable ID and state its trigger, caller impact, exact file/line, evidence, and proportionate correction. Preserve supplied IDs across correction/review handoffs and verify prior findings explicitly as resolved, unresolved, or otherwise disposed of with evidence; assign new IDs to new findings. Report a defect once, cross-referencing it if both axes apply. Keep unproven hypotheses under open questions, with evidence needed to resolve them. Empty axes may have no findings. A smell is a prompt to investigate, not a quota: report demonstrated maintenance cost rather than a pattern name alone.
 
 For systemic structural problems, propose the scoped [architecture audit](architecture-audit.md); do not expand an ordinary review into a redesign automatically.
 
@@ -52,6 +52,8 @@ Use the lowest applicable score; passing checks do not offset confirmed defects.
 
 Explain the score in 1–3 sentences naming the decisive findings or gaps and relevant verification results. Give an explicit recommendation: **Ready to merge**, **Request changes**, or **Hold for verification/clarification**. Scores 0–2 require changes; 3 requires resolving the stated gaps; 4–5 support merging subject to the repository's remaining approval requirements. State what must change before merging when blocked. Include the score, explanation, and recommendation in the final user-facing review and any parent handoff; recompute them after fixes or revision changes.
 
+The rubric describes the reviewed revision's readiness; the orchestrator applies a stricter delivery gate. Under that workflow, **4/5 does not pass** even when the recommendation is favorable: only an independent **5/5** stops the loop successfully. Report the honest score without inflating it or changing the rubric to force passage. The coordinator owns round counts, fresh correction/review dispatch, the three-scored-review limit, and the stop decision. Reviewers return evidence and do not apply fixes, start another round, post remote approvals, merge, or mark the card Done as part of review.
+
 For a formal review, use this compact structure; a focused implementation self-review can be summarized in the handoff:
 
 ```markdown
@@ -60,11 +62,12 @@ PR score: N/5 — brief explanation tied to findings and verification evidence.
 Recommendation: Ready to merge / Request changes / Hold for verification/clarification.
 Required next action when blocked. Include this section for PR reviews.
 ## Target
-Revisions/diff scope and originating requirements.
+Exact base/head revisions (including reviewed head SHA), diff scope, and originating requirements.
 ## Standards Axis
-Severity, file:line, trigger, evidence, impact, correction; or no findings.
+Stable finding ID, severity, file:line, trigger, evidence, impact, correction; or no findings.
 ## Spec Axis
-Criterion and file:line, missing/incorrect/unrequested behavior; or no findings.
+Stable finding ID, criterion and file:line, missing/incorrect/unrequested behavior; or no findings.
+Prior finding IDs and evidence-backed dispositions when supplied.
 ## Validation
 Commands, runtime/toolchain/configuration, outcomes, baseline failures, skipped checks.
 Acceptance criteria/scenarios and evidence for each; unverified criteria.

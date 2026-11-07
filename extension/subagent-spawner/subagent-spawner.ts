@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { homedir } from "node:os";
@@ -90,6 +91,34 @@ function getAgentsDir(): string {
 
 function getModelsConfigPath(): string {
 	return path.join(getAgentBaseDir(), "models.json");
+}
+
+function loadSubagentEnabled(): boolean {
+	const target = path.join(getAgentBaseDir(), "subagent.json");
+	let config: unknown;
+	try {
+		config = JSON.parse(fs.readFileSync(target, "utf8"));
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+		throw error;
+	}
+	if (!config || typeof config !== "object" || Array.isArray(config) ||
+		typeof (config as { enabled?: unknown }).enabled !== "boolean") {
+		throw new Error(`Invalid config at ${target}: expected { "enabled": true | false }.`);
+	}
+	return (config as { enabled: boolean }).enabled;
+}
+
+function saveSubagentEnabled(enabled: boolean): void {
+	const target = path.join(getAgentBaseDir(), "subagent.json");
+	fs.mkdirSync(path.dirname(target), { recursive: true });
+	const staged = `${target}.${randomUUID()}.tmp`;
+	try {
+		fs.writeFileSync(staged, JSON.stringify({ enabled }, null, 2) + "\n", { flag: "wx", mode: 0o600 });
+		fs.renameSync(staged, target);
+	} finally {
+		fs.rmSync(staged, { force: true });
+	}
 }
 
 function normalizeProviderName(value: string): string {
@@ -492,21 +521,41 @@ async function runSubagent(
 export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 	let subagentEnabled = false;
 
+	pi.on("session_start", async (_event, ctx) => {
+		try {
+			subagentEnabled = loadSubagentEnabled();
+		} catch (error) {
+			subagentEnabled = false;
+			ctx.ui.notify(`Cannot load subagent settings: ${error instanceof Error ? error.message : String(error)} Subagents are disabled. Use /subagent on or off to save a valid setting.`, "error");
+		}
+	});
+
 	pi.registerCommand("subagent", {
-		description: "Toggle or check subagent spawning status (on/off)",
+		description: "Toggle or check saved subagent spawning status (on/off)",
 		handler: async (args, ctx) => {
 			const subcmd = (args || "").trim().toLowerCase();
+			let nextEnabled = subagentEnabled;
 			if (subcmd === "on" || subcmd === "enable" || subcmd === "1") {
-				subagentEnabled = true;
+				nextEnabled = true;
 			} else if (subcmd === "off" || subcmd === "disable" || subcmd === "0") {
-				subagentEnabled = false;
+				nextEnabled = false;
 			} else if (subcmd === "status") {
 				// keep current state
 			} else if (!subcmd) {
-				subagentEnabled = !subagentEnabled;
+				nextEnabled = !subagentEnabled;
 			} else {
 				ctx.ui.notify(`Unknown argument: "${subcmd}". Usage: /subagent [on|off|status]`, "warning");
 				return;
+			}
+
+			if (subcmd !== "status") {
+				try {
+					saveSubagentEnabled(nextEnabled);
+				} catch (error) {
+					ctx.ui.notify(`Cannot save subagent settings: ${error instanceof Error ? error.message : String(error)} Setting unchanged.`, "error");
+					return;
+				}
+				subagentEnabled = nextEnabled;
 			}
 
 			const stateStr = subagentEnabled ? "enabled" : "disabled";

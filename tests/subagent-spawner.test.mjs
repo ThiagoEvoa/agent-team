@@ -1,12 +1,17 @@
 import assert from 'node:assert/strict';
-import { test, after } from 'node:test';
-import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync, rmSync } from 'node:fs';
+import { test, after, beforeEach } from 'node:test';
+import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const home = mkdtempSync(join(tmpdir(), 'subagent-test-'));
 const oldHome = process.env.HOME;
+const oldAgentDir = process.env.PI_CODING_AGENT_DIR;
 process.env.HOME = home;
+const agentDir = join(home, 'pi-config');
+process.env.PI_CODING_AGENT_DIR = agentDir;
+const configPath = join(agentDir, 'subagent.json');
 mkdirSync(join(home, '.agents/agents'), { recursive: true });
 copyFileSync(new URL('../agents/researcher.md', import.meta.url), join(home, '.agents/agents/researcher.md'));
 copyFileSync(new URL('../agents/README.md', import.meta.url), join(home, '.agents/agents/README.md'));
@@ -22,16 +27,21 @@ else if(prompt==='context-probe') console.log(JSON.stringify({pid:process.pid,ar
 else console.log(readFileSync(args[args.indexOf('--append-system-prompt')+1],'utf8'));
 `);
 const { default: init } = await import('../extension/subagent-spawner/subagent-spawner.ts');
+beforeEach(() => rmSync(agentDir, { recursive: true, force: true }));
 after(() => {
   if (oldHome === undefined) delete process.env.HOME; else process.env.HOME = oldHome;
+  if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR; else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
   rmSync(home, { recursive: true, force: true });
 });
 async function harness(enabled = true) {
-  const commands = new Map(), tools = new Map();
-  init({ registerCommand: (n,c) => commands.set(n,c), registerTool: t => tools.set(t.name,t), getActiveTools: () => ['read','spawnSubagent'] });
-  const ctx = { cwd: home, ui: { notify() {} } };
+  const commands = new Map(), tools = new Map(), handlers = new Map(), notifications = [];
+  init({ on: (n,h) => handlers.set(n,h), registerCommand: (n,c) => commands.set(n,c), registerTool: t => tools.set(t.name,t), getActiveTools: () => ['read','spawnSubagent'] });
+  const ctx = { cwd: home, ui: { notify: (text, level) => notifications.push({ text, level }) } };
+  const emit = async name => handlers.get(name)?.({},ctx);
+  await emit('session_start');
+  const command = args => commands.get('subagent').handler(args,ctx);
   if(enabled) await commands.get('subagent').handler('on',ctx);
-  return { tool: tools.get('spawnSubagent'), run: async (args,signal) => {
+  return { command, notifications, emit, tool: tools.get('spawnSubagent'), run: async (args,signal) => {
     const old = process.argv[1]; process.argv[1] = fake;
     try { return await tools.get('spawnSubagent').execute('test',args,signal,undefined,ctx); }
     finally { process.argv[1] = old; }
@@ -40,6 +50,91 @@ async function harness(enabled = true) {
 test('disabled spawning stays disabled', async () => {
   const h = await harness(false);
   assert.equal((await h.run({prompt:'test',agent:'researcher'})).details.disabled,true);
+  assert.equal(existsSync(configPath),false);
+});
+
+test('on and off survive separate process restarts', () => {
+  const moduleUrl = new URL('../extension/subagent-spawner/subagent-spawner.ts', import.meta.url).href;
+  const restart = action => execFileSync(process.execPath, ['--input-type=module', '-e', `
+    import init from ${JSON.stringify(moduleUrl)};
+    const commands = new Map(), handlers = new Map();
+    init({ on: (name, fn) => handlers.set(name, fn), registerCommand: (name, value) => commands.set(name, value), registerTool() {} });
+    const ctx = { ui: { notify(text) { console.log(text); } } };
+    await handlers.get('session_start')({}, ctx);
+    await commands.get('subagent').handler(${JSON.stringify(action)}, ctx);
+  `], { encoding: 'utf8' });
+  assert.match(restart('status'),/disabled/);
+  assert.equal(existsSync(configPath),false);
+  assert.match(restart('on'),/enabled/);
+  assert.match(restart('status'),/enabled/);
+  assert.match(restart('off'),/disabled/);
+  assert.match(restart('status'),/disabled/);
+  assert.deepEqual(JSON.parse(readFileSync(configPath,'utf8')),{enabled:false});
+});
+
+test('toggle and aliases persist; status and invalid commands do not write settings', async () => {
+  const h = await harness(false);
+  await h.command('status');
+  await h.command('unknown');
+  assert.equal(existsSync(configPath),false);
+  for (const [action, enabled] of [['',true],['',false],['enable',true],['disable',false],['1',true],['0',false]]) {
+    await h.command(action);
+    assert.deepEqual(JSON.parse(readFileSync(configPath,'utf8')),{enabled});
+    const next = await harness(false);
+    await next.command('status');
+    assert.match(next.notifications.at(-1).text,enabled ? /enabled/ : /disabled/);
+  }
+  const saved = readFileSync(configPath,'utf8');
+  await h.command('status');
+  await h.command('unknown');
+  assert.equal(readFileSync(configPath,'utf8'),saved);
+  assert.deepEqual(readdirSync(agentDir),['subagent.json']);
+});
+
+test('invalid settings disable spawning and explicit on repairs the file', async () => {
+  mkdirSync(agentDir,{recursive:true});
+  for (const invalid of ['{', 'null', '[]', '{}', '{"enabled":"true"}', '{"enabled":1}']) {
+    writeFileSync(configPath,invalid);
+    const h = await harness(false);
+    assert.equal((await h.run({prompt:'test',agent:'researcher'})).details.disabled,true);
+    assert.equal(h.notifications[0].level,'error');
+    assert.match(h.notifications[0].text,/Cannot load subagent settings/);
+    assert.equal(readFileSync(configPath,'utf8'),invalid);
+    await h.command('on');
+    assert.deepEqual(JSON.parse(readFileSync(configPath,'utf8')),{enabled:true});
+  }
+});
+
+test('read and write failures are reported without falsely claiming success', async () => {
+  const h = await harness();
+  rmSync(configPath);
+  mkdirSync(configPath);
+  await h.command('off');
+  assert.equal(h.notifications.at(-1).level,'error');
+  assert.match(h.notifications.at(-1).text,/Cannot save.*Setting unchanged/);
+  await h.command('status');
+  assert.match(h.notifications.at(-1).text,/enabled/);
+  assert.deepEqual(readdirSync(agentDir),['subagent.json']);
+  const next = await harness(false);
+  assert.match(next.notifications[0].text,/Cannot load/);
+  assert.equal((await next.run({prompt:'test',agent:'researcher'})).details.disabled,true);
+});
+
+test('default config lives under HOME when PI_CODING_AGENT_DIR is unset', async () => {
+  delete process.env.PI_CODING_AGENT_DIR;
+  const defaultConfig = join(home,'.pi/agent/subagent.json');
+  try {
+    const h = await harness(false);
+    await h.command('on');
+    assert.deepEqual(JSON.parse(readFileSync(defaultConfig,'utf8')),{enabled:true});
+    assert.equal(existsSync(configPath),false);
+    const next = await harness(false);
+    await next.command('status');
+    assert.match(next.notifications.at(-1).text,/enabled/);
+  } finally {
+    rmSync(defaultConfig,{force:true});
+    process.env.PI_CODING_AGENT_DIR = agentDir;
+  }
 });
 test('delegation requires explicit valid persona, not legacy trigger guessing', async () => {
   const h = await harness();

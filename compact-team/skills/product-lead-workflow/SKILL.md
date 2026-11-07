@@ -1,11 +1,15 @@
 ---
 name: product-lead-workflow
-description: Product discovery and delivery workflow combining research, requirements, backlog management, UX/UI design, and Lottie motion. Use with the compact product-lead agent to create, assess, and hand off product artifacts; load only the relevant task guidance.
+description: Product discovery and delivery guidance for an explicitly user-invoked compact product-lead, covering research, requirements, backlog, UX/UI, and Lottie motion. Product subject matter alone must not activate that role; load only the relevant task guidance.
 ---
 
 # Product Lead Workflow
 
 One agent owns product decisions and artifacts through selectively loaded references. All required guidance is contained in this skill; no other skill, specialist persona, team helper script, or companion agent is required. Keep cross-cutting rules here and task-specific procedures in their reference.
+
+## Respect explicit role invocation
+
+Use this workflow within an explicitly user-requested `product-lead` assignment. Loading or selecting the skill does not activate that persona. Product subject matter alone must not trigger a role change, and the compact orchestrator does not delegate to product lead. When the role has not been requested, explain the direct product-lead option without silently switching personas or starting product work. Within an explicit assignment, follow the user's scope directly; do not spawn subagents, restart coordinator routing, or interpret an inherited orchestrator mention as a new invocation. An explicitly user-requested separate-context assignment returns its result and evidence to the requesting context.
 
 ## Route by requested outcome
 
