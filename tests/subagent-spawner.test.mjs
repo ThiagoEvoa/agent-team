@@ -19,15 +19,20 @@ for (const agent of ['compact-orchestrator', 'product-lead', 'software-engineer'
   copyFileSync(new URL(`../compact-team/agents/${agent}.md`, import.meta.url), join(home, `.agents/agents/${agent}.md`));
 }
 const fake = join(home, 'fake-pi.mjs');
-writeFileSync(fake, `import {readFileSync} from 'node:fs';
+writeFileSync(fake, `import {readFileSync,writeFileSync} from 'node:fs';
 const args=process.argv.slice(2), prompt=args.at(-1);
-if(prompt==='hang') { process.on('SIGTERM',()=>{}); console.log('ready'); setInterval(()=>{},100); }
+if(prompt==='hang') { writeFileSync('partial-work','implemented slice; checks pending'); process.on('SIGTERM',()=>{}); console.log('ready'); setInterval(()=>{},100); }
 else if(prompt==='large') console.log('x'.repeat(10000));
+else if(prompt==='silent-slow') setTimeout(()=>console.log('finished'),1500);
+else if(prompt==='output-slow') { console.log('x'.repeat(10000)); console.error('diagnostic'); setTimeout(()=>console.log('finished'),1500); }
 else if(prompt==='context-probe') console.log(JSON.stringify({pid:process.pid,args}));
 else console.log(readFileSync(args[args.indexOf('--append-system-prompt')+1],'utf8'));
 `);
 const { default: init } = await import('../extension/subagent-spawner/subagent-spawner.ts');
-beforeEach(() => rmSync(agentDir, { recursive: true, force: true }));
+beforeEach(() => {
+  rmSync(agentDir, { recursive: true, force: true });
+  rmSync(join(home,'partial-work'), { force: true });
+});
 after(() => {
   if (oldHome === undefined) delete process.env.HOME; else process.env.HOME = oldHome;
   if (oldAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR; else process.env.PI_CODING_AGENT_DIR = oldAgentDir;
@@ -41,9 +46,9 @@ async function harness(enabled = true) {
   await emit('session_start');
   const command = args => commands.get('subagent').handler(args,ctx);
   if(enabled) await commands.get('subagent').handler('on',ctx);
-  return { command, notifications, emit, tool: tools.get('spawnSubagent'), run: async (args,signal) => {
+  return { command, notifications, emit, tool: tools.get('spawnSubagent'), run: async (args,signal,onUpdate) => {
     const old = process.argv[1]; process.argv[1] = fake;
-    try { return await tools.get('spawnSubagent').execute('test',args,signal,undefined,ctx); }
+    try { return await tools.get('spawnSubagent').execute('test',args,signal,onUpdate,ctx); }
     finally { process.argv[1] = old; }
   }};
 }
@@ -163,18 +168,89 @@ test('already aborted signal prevents launching child', async () => {
   assert.equal(r.details.ok,false);
 });
 test('abort stops running child', {timeout:5000}, async () => {
-  const h=await harness(); const c=new AbortController();
+  const h=await harness(); const c=new AbortController(); const updates=[];
   const timer=setTimeout(()=>c.abort(),500);
   try {
-    const r=await h.run({prompt:'hang',agent:'researcher',timeoutMs:10000},c.signal);
+    const r=await h.run({prompt:'hang',agent:'researcher',timeoutMs:10000},c.signal,update=>updates.push(update));
     assert.equal(r.details.aborted,true);
     assert.equal(r.details.ok,false);
+    assert.equal(r.details.state,'exited');
+    assert.ok(updates.some(update=>update.details.state==='stopping' && update.details.aborted===true));
+    assert.equal(readFileSync(join(home,'partial-work'),'utf8'),'implemented slice; checks pending');
   } finally {clearTimeout(timer);}
 });
 test('output cap records truncation', async () => {
   const h=await harness(); const r=await h.run({prompt:'large',agent:'researcher',maxOutputChars:100});
   assert.equal(r.details.truncated,true);
   assert.ok(r.content[0].text.length<200);
+});
+
+test('silent worker reports pending execution and then returns on process exit', {timeout:5000}, async () => {
+  const h = await harness(), updates = [];
+  const result = await h.run({prompt:'silent-slow',agent:'software-engineer',timeoutMs:4000,progressIntervalMs:1000},undefined,update => updates.push(update));
+  const heartbeat = updates.find(update => update.details.elapsedMs >= 1000);
+  assert.ok(heartbeat, 'a silent child must remain visible while running');
+  assert.equal(heartbeat.details.state,'running');
+  assert.equal(heartbeat.details.lastOutputAt,null);
+  assert.equal(heartbeat.details.stdoutChars,0);
+  assert.equal(heartbeat.details.ok,undefined);
+  assert.match(heartbeat.content[0].text,/task progress unverified/);
+  assert.equal(result.details.state,'exited');
+  assert.equal(result.details.ok,true);
+  assert.equal(result.details.timedOut,false);
+  assert.equal(result.content[0].text,'finished');
+  assert.ok(result.details.elapsedMs < result.details.timeoutMs);
+});
+
+test('output activity stays observable after the capture cap without becoming a handoff', {timeout:5000}, async () => {
+  const h = await harness(), updates = [];
+  const result = await h.run({prompt:'output-slow',agent:'software-engineer',timeoutMs:4000,maxOutputChars:100,progressIntervalMs:1000},undefined,update => updates.push(update));
+  const heartbeat = updates.find(update => update.details.stdoutChars > 100 && update.details.stderrChars > 0);
+  assert.ok(heartbeat);
+  assert.ok(heartbeat.details.lastOutputAt);
+  assert.equal(heartbeat.details.state,'running');
+  assert.equal(heartbeat.details.ok,undefined);
+  assert.ok(heartbeat.content[0].text.length < 1000, 'progress must stay bounded');
+  assert.equal(result.details.state,'exited');
+  assert.equal(result.details.ok,true);
+  assert.equal(result.details.truncated,true);
+  assert.ok(result.details.stdoutChars > 10000);
+});
+
+test('timeout reports stopping before exit and preserves partial work', {timeout:5000}, async () => {
+  const h = await harness(), updates = [];
+  const result = await h.run({prompt:'hang',agent:'software-engineer',timeoutMs:500},undefined,update => updates.push(update));
+  assert.ok(updates.some(update => update.details.state === 'stopping' && update.details.timedOut === true));
+  assert.equal(result.details.state,'exited');
+  assert.equal(result.details.ok,false);
+  assert.equal(result.details.timedOut,true);
+  assert.match(result.content[0].text,/ready/);
+  assert.equal(readFileSync(join(home,'partial-work'),'utf8'),'implemented slice; checks pending');
+});
+
+test('a failed progress renderer does not interrupt worker execution', async () => {
+  const h = await harness();
+  const result = await h.run({prompt:'context-probe',agent:'software-engineer'},undefined,() => { throw new Error('renderer unavailable'); });
+  assert.equal(result.details.ok,true);
+  assert.equal(result.details.state,'exited');
+  assert.equal(JSON.parse(result.content[0].text).args.at(-1),'context-probe');
+});
+
+test('fast completion returns before the next activity interval', {timeout:5000}, async () => {
+  const h = await harness();
+  const result = await h.run({prompt:'context-probe',agent:'software-engineer',timeoutMs:4000,progressIntervalMs:60000},undefined,() => {});
+  assert.equal(result.details.state,'exited');
+  assert.equal(result.details.ok,true);
+  assert.equal(result.details.timedOut,false);
+  assert.ok(result.details.elapsedMs < 4000);
+});
+
+test('oversized execution budget cannot overflow into an immediate timeout', {timeout:5000}, async () => {
+  const h = await harness();
+  const result = await h.run({prompt:'context-probe',agent:'software-engineer',timeoutMs:2**31});
+  assert.equal(result.details.timeoutMs,2147483647);
+  assert.equal(result.details.ok,true);
+  assert.equal(result.details.timedOut,false);
 });
 
 test('compact coordinator resolves by its distinct persona name', async () => {

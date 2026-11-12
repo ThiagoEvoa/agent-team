@@ -80,6 +80,7 @@ Add operation references at their actual decision points:
 | Execute or interpret mutation checks | [Mutation testing](references/mutation-testing.md) |
 | Prepare/update a PR description or PR handoff | [PR standards](references/pr-standards.md) |
 | Multi-step implementation, review corrections, or recurring failures | [Delivery/correction loop](references/delivery.md) |
+| Long delegated assignment, durable handoff, or continuation after interruption | [Checkpoint and recovery procedure](references/delivery.md#checkpoints-and-interruption-recovery) |
 | Firebase tool/emulator/resource operation | [Firebase target verification](references/firebase-targets.md); add [cloud operations](references/firebase-operations.md) only for remote mutations |
 
 Preserve existing architecture unless change is requested or needed for the outcome. Choose boundaries from concrete behavior and change pressure; compare alternatives for consequential interfaces. Keep small features simple. Read domain/ADR templates only when writing them; create documents lazily for clarified concepts or real trade-offs. An ordinary fix or code review does not require an HTML architecture audit. If a review exposes systemic structural issues, report their evidence and scope an architecture follow-up; perform it when authorized.

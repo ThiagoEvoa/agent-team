@@ -23,6 +23,16 @@ For authorized PR delivery tied to an existing board task, complete and verify t
 
 For larger work, use a concise task list or existing issue tracker to retain per-slice criteria, status, latest revision, evidence, findings, and next action. Do not require a new tracking document for a small fix. For mixed product/engineering work, carry the same contracts and evidence across the role transition rather than restarting the task. Use the project's existing board states when board updates are authorized; do not infer Done or issue closure from an implementation claim.
 
+## Checkpoints and interruption recovery
+
+For a long or multi-step assignment, use the coordinator's supplied writable scratch checkpoint/handoff path or an existing suitable artifact. Keep it outside the repository/review target when a review must be read-only, and do not commit scratch evidence or require a new file for a tiny task. Report an unavailable recovery destination. Keep updates concise and replace the checkpoint atomically when supported so interruption does not destroy the previous usable evidence.
+
+Record the assignment label and role, workspace, branch/base and latest known revision, supplied review round, completed/unfinished criteria, changed files, actual check results and applicable revisions, artifact/PR/card URLs and observed state, and the next action. Distinguish verified observations from pending or uncertain effects. Before an external mutation, record its intent and target; afterward record its actual result. If a crash occurs between success and recording, the pending entry requires checking the real destination before retrying. Never put secrets or raw sensitive logs in a checkpoint.
+
+Update at meaningful milestones such as an implemented slice, completed validation, or observed publication. A worker cannot guarantee timed updates during model generation or a blocking tool; runtime activity reporting is separate. Do not write invented progress. Save the final evidence-backed handoff before returning it to the coordinator; the artifact provides recovery if tool output is capped. Its existence does not establish process exit, successful checks, or task completion by itself.
+
+When assigned a continuation after confirmed process exit, read the prior evidence and inspect the actual workspace/revisions and authorized remote targets. Preserve others' changes and completed task work. Resolve uncertain operations before retrying; continue on the same implementation branch/PR and card, retaining the coordinator's review-round ledger. Implement only unfinished steps and rerun only checks invalidated by subsequent changes. Report any discrepancy or unavailable verification. Interruption does not authorize repeating publication, creating another implementation branch or PR, restarting the review limit, changing model settings, or weakening acceptance criteria.
+
 ## When corrections keep failing
 
 If the same defect or structural problem survives successive correction/review passes, stop applying the same class of patch. Recheck the original reproduction, assumptions, dependency/environment differences, ownership, seam, and domain rules. A smaller fix that repeatedly breaks another caller can indicate the wrong boundary or an incomplete contract.

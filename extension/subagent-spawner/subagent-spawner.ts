@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { AgentToolUpdateCallback, ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
@@ -14,6 +14,7 @@ type SpawnArgs = {
 	tools?: string[];
 	timeoutMs?: number;
 	maxOutputChars?: number;
+	progressIntervalMs?: number;
 };
 
 type ModelLike = {
@@ -294,6 +295,7 @@ async function runSubagent(
 	signal: AbortSignal | undefined,
 	ctx: ExtensionContext,
 	dispatchDefaults: DispatchDefaults,
+	onUpdate?: AgentToolUpdateCallback,
 ) {
 	const prompt = typeof args.prompt === "string" ? args.prompt.trim() : "";
 	if (!prompt) {
@@ -303,8 +305,9 @@ async function runSubagent(
 		});
 	}
 
-	const timeoutMs = clampPositiveInt(args.timeoutMs, 120_000);
+	const timeoutMs = Math.min(clampPositiveInt(args.timeoutMs, 120_000), 2_147_483_647);
 	const maxOutputChars = clampPositiveInt(args.maxOutputChars, 20_000);
+	const progressIntervalMs = Math.min(60_000, Math.max(1_000, clampPositiveInt(args.progressIntervalMs, 10_000)));
 	const cwd = typeof ctx.cwd === "string" && ctx.cwd ? ctx.cwd : process.cwd();
 
 	const activeModel = (ctx as ExtensionContext & { model?: ModelLike }).model;
@@ -390,10 +393,30 @@ async function runSubagent(
 	let timedOut = false;
 	let aborted = false;
 	let settled = false;
+	const startedAt = Date.now();
+	let stdoutChars = 0;
+	let stderrChars = 0;
+	let lastOutputAt: number | null = null;
 
     let escalation: ReturnType<typeof setTimeout> | undefined;
     let stopRequested = false;
     let outputTruncated = false;
+	const reportProgress = () => {
+		if (!onUpdate || settled) return;
+		const elapsedMs = Date.now() - startedAt;
+		const remainingMs = Math.max(0, timeoutMs - elapsedMs);
+		const state = stopRequested ? "stopping" : "running";
+		const activity = lastOutputAt === null ? "no output yet" : `last output ${Math.floor((Date.now() - lastOutputAt) / 1000)}s ago`;
+		try {
+			onUpdate(toTextResult(
+				`${resolvedAgent.name}: ${state} (process activity only; task progress unverified). Elapsed ${Math.floor(elapsedMs / 1000)}s; timeout remaining ${Math.ceil(remainingMs / 1000)}s; stdout ${stdoutChars} chars, stderr ${stderrChars} chars; ${activity}.`,
+				{ state, elapsedMs, remainingMs, timeoutMs, stdoutChars, stderrChars, lastOutputAt, timedOut, aborted, cwd,
+					agent: { name: resolvedAgent.name, sourcePath: resolvedAgent.sourcePath } },
+			));
+		} catch {
+			// A progress renderer must not interrupt process management or lose the handoff.
+		}
+	};
     const sendSignal = (name: NodeJS.Signals) => {
         try {
             if (process.platform !== "win32" && child.pid) process.kill(-child.pid, name);
@@ -405,6 +428,7 @@ async function runSubagent(
         stopRequested = true;
         sendSignal("SIGTERM");
         escalation = setTimeout(() => sendSignal("SIGKILL"), 1000);
+		reportProgress();
     };
     const timeout = setTimeout(() => {
         timedOut = true;
@@ -416,13 +440,19 @@ async function runSubagent(
     };
     signal?.addEventListener("abort", onAbort, { once: true });
     if (signal?.aborted) onAbort();
+	reportProgress();
+	const progressTimer = onUpdate ? setInterval(reportProgress, progressIntervalMs) : undefined;
     child.stdout?.on("data", (chunk: Buffer | string) => {
         const text = String(chunk);
+		stdoutChars += text.length;
+		lastOutputAt = Date.now();
         if (stdout.length + text.length > maxOutputChars) outputTruncated = true;
         stdout += text.slice(0, Math.max(0, maxOutputChars - stdout.length));
     });
     child.stderr?.on("data", (chunk: Buffer | string) => {
         const text = String(chunk);
+		stderrChars += text.length;
+		lastOutputAt = Date.now();
         if (stderr.length + text.length > maxOutputChars) outputTruncated = true;
         stderr += text.slice(0, Math.max(0, maxOutputChars - stderr.length));
     });
@@ -439,6 +469,7 @@ async function runSubagent(
 	});
 
 	clearTimeout(timeout);
+	if (progressTimer) clearInterval(progressTimer);
     if (stopRequested) sendSignal("SIGKILL"); // Reap remaining POSIX process-group members.
     if (escalation) clearTimeout(escalation);
 	signal?.removeEventListener("abort", onAbort);
@@ -464,6 +495,11 @@ async function runSubagent(
         trimmed.text += `\n\n[output truncated to ${maxOutputChars} chars]`;
     }
 	const metadata = {
+		state: "exited",
+		elapsedMs: Date.now() - startedAt,
+		stdoutChars,
+		stderrChars,
+		lastOutputAt,
 		ok: !timedOut && !aborted && exitCode === 0,
 		exitCode,
 		timedOut,
@@ -567,7 +603,7 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 		name: "spawnSubagent",
 		label: "Spawn Subagent",
 		description:
-			"Run a child Pi agent for a focused task and return its output. Use when you need isolated subagent execution.",
+			"Run a child Pi agent for a focused task and return its output on exit. Reports process activity while waiting; updates are not completion evidence. Set an explicit timeout for slow/local models; timeout terminates the child.",
 		promptSnippet: "Spawn a child Pi subagent for an isolated task",
 		parameters: {
 			type: "object",
@@ -601,11 +637,15 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 				},
 				timeoutMs: {
 					type: "number",
-					description: "Optional timeout in milliseconds (default 120000).",
+					description: "Hard execution timeout in milliseconds (fallback 120000, maximum 2147483647). Set explicitly for the task and model speed; expiration terminates the child, not just the wait.",
 				},
 				maxOutputChars: {
 					type: "number",
 					description: "Optional output cap (default 20000 chars).",
+				},
+				progressIntervalMs: {
+					type: "number",
+					description: "Process activity update interval in milliseconds (default 10000, clamped to 1000–60000). Does not extend the execution timeout or create a background job.",
 				},
 			},
 		},
@@ -613,7 +653,7 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 			_toolCallId: string,
 			params: SpawnArgs,
 			signal: AbortSignal | undefined,
-			_onUpdate: unknown,
+			onUpdate: AgentToolUpdateCallback | undefined,
 			ctx: ExtensionContext,
 		) {
 			if (!subagentEnabled) {
@@ -636,7 +676,7 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 				provider,
 				thinking,
 				tools,
-			});
+			}, onUpdate);
 		},
 	});
 }

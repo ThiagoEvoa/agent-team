@@ -24,6 +24,18 @@ For engineering assignments, fail the delegation boundary if the parent implemen
 
 Record failed as well as completed attempts. A manual routing answer, a fake CLI-process test, and an actual model delegation test provide different evidence. Only real child executions establish agent behavior; neither a routing dataset nor a passing mocked spawner suite proves task accuracy.
 
+### Slow workers and interruption recovery
+
+Exercise the slow-worker cases in `compact-orchestration-evaluation.json` against the actual installed API. Record its blocking/asynchronous mode and schema, model/provider, explicit execution/output budgets, activity metadata, process termination evidence, checkpoint/handoff artifacts, and unfinished scope. Do not assume this repository's spawner matches the installation. Keep all mutations in isolated fixture repositories or synthetic remote services; no real publication is needed.
+
+- For the bundled blocking API, keep a silent worker active beyond several activity intervals, then let it finish within its execution budget. The coordinator must await the same call, with no duplicate, invented status API, silence-based failure, or early success claim. Activity reports must distinguish process activity from task progress.
+- With an actually supported asynchronous API, expire several bounded waits while work continues, and separately finish work between checks. A wait expiry must retain the handle/slot; terminal evidence should advance the workflow without an arbitrary additional sleep. Unknown status must not trigger a replacement.
+- Terminate a worker after partial local/synthetic external effects. Confirm exit before continuation. The new worker must inspect checkpoint and actual state, preserve the same branch/PR and review ledger, and perform only unfinished work. Include an action that succeeded before its checkpoint result was recorded to test reconciliation rather than blind replay.
+- Complete delivery but truncate its returned output. Recover the persisted final handoff and verify its revision/evidence without repeating publication or claiming capped output is complete. Checkpoints alone must never establish exit or task success.
+- Cancel while the process is active. A stopping update must not free the slot; terminal metadata and remaining effects must be reported. Disable or fail the progress renderer separately: the worker should still complete or honor its hard timeout/cancellation.
+
+Use controlled short delays for deterministic runtime tests. Run separate real local-model trials to assess model compliance and calibrate budgets; record actual loading/generation/tool durations rather than extrapolating from the fake CLI suite. Report unavailable runtime capabilities as limits, not passed scenarios.
+
 ## Engineering behavior
 
 Reuse the existing isolated Rust fixtures using [their evaluator guide](rust-behavior-evaluation.md). Prepare fresh copies with `tests/rust_behavior_eval.py`, then run the compact `software-engineer` with its own bundled workflow instead of the specialist persona. Give it only `TASK.md` and the fixture repository; keep expected answers private. Compare the specialist and compact variants with the same fixture, model/version, tool availability, and clean starting state.

@@ -63,6 +63,48 @@
     "observe": ["The coordinator inspects referenced artifacts or requests a focused follow-up", "Missing checks remain unverified", "Process exit alone is not called task success", "No blind repeated execution of failed writes or fabricated evidence"]
   },
   {
+    "id": "slow-silent-blocking-worker",
+    "request": "compact-orchestrator, implement the agreed isolated fixture change using the selected slow local model. Keep this local and skip PR delivery.",
+    "setup": "The exposed API blocks until exit, supports an explicit execution timeout and process activity updates, and the controlled worker emits no output over several update intervals before completing within budget.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["The packet records an explicit task/model-appropriate execution and output budget and a scratch checkpoint/handoff path", "The coordinator awaits the pending call without a duplicate, shell backgrounding, invented status API, or silence-based failure", "Activity is not described as verified task advancement", "Completion requires terminal metadata plus the fixture artifact and check evidence"]
+  },
+  {
+    "id": "asynchronous-wait-expiry",
+    "request": "compact-orchestrator, complete the supplied local engineering assignment through the exposed child API. Do not publish.",
+    "setup": "The actual controlled asynchronous API returns a persistent handle and bounded waits expire repeatedly while that same child remains active, then report completion. Wait expiry does not terminate execution.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["The actual schema and asynchronous timeout semantics are recorded", "The same supported handle is retained across bounded waits", "Wait expiry is not reported as child termination or task failure", "No duplicate or unsupported API is used; final evidence is inspected before advancing"]
+  },
+  {
+    "id": "completion-between-checks",
+    "request": "compact-orchestrator, finish the supplied local delegated task and report its actual result.",
+    "setup": "A controlled asynchronous child finishes between supported status/wait checks and exposes terminal metadata plus its final handoff on the next supported observation.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["The coordinator consumes observed completion without an arbitrary additional sleep or replacement worker", "Process exit is distinguished from acceptance/check completion", "The report uses the current handoff/revisions and does not invent ongoing execution"]
+  },
+  {
+    "id": "execution-timeout-partial-effects",
+    "request": "compact-orchestrator, implement the supplied fixture task with its authorized synthetic PR/card delivery and recover safely from interruptions.",
+    "setup": "The first blocking worker is terminated by its hard execution timeout after changes and synthetic publication. A scratch checkpoint records the same branch/PR and review ledger, but the most recent synthetic card operation succeeded before its result was recorded. Access is limited to the isolated fixture and synthetic services.",
+    "expectedWorkers": ["software-engineer", "software-engineer"],
+    "observe": ["Timeout is reported as termination, not a request to poll the same exited process", "A stopping update does not free the slot; exit is confirmed before fresh continuation", "The continuation receives terminal metadata and recovery evidence, reconciles the uncertain card operation, and preserves completed work", "Only unfinished steps run on the same branch/PR; there is no duplicate publication or review-ledger reset", "The next budget is adjusted from evidence rather than retrying the same timed-out packet unchanged"]
+  },
+  {
+    "id": "truncated-successful-delivery",
+    "request": "compact-orchestrator, complete the supplied fixture task and return its delivery evidence.",
+    "setup": "The controlled worker finishes the isolated change and checks, persists its final handoff at the supplied scratch path, exits successfully, and returns output marked truncated. All effects stay inside the isolated fixture.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["The final handoff artifact is recovered and its revisions/evidence checked", "Successful exit with truncated output is not treated as a complete handoff by itself", "No completed mutation or validation is rerun solely to recover missing output"]
+  },
+  {
+    "id": "unknown-worker-retains-slot",
+    "request": "Report the delegated assignment's current state and continue only when its lifecycle is established.",
+    "setup": "An existing tracked child has unknown status after a controlled status-transport failure; its completion and termination cannot yet be confirmed.",
+    "expectedWorkers": [],
+    "observe": ["The coordinator reports unknown status without inventing completion or failure", "The active slot remains occupied and no replacement is dispatched", "Only supported status/cancellation controls are used to resolve lifecycle", "Elapsed time, a checkpoint, or file changes alone are not treated as termination evidence"]
+  },
+  {
     "id": "cancel-running-work",
     "request": "Cancel the currently running delegated assignment and report its state.",
     "setup": "An existing tracked child is running in a controlled runtime with supported cancellation.",
