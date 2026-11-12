@@ -1,6 +1,6 @@
 ---
 name: software-engineer-workflow
-description: Stack-aware engineering workflow for Go, Rust, Dart, Flutter, Dart Frog, Astro, Next.js, and Firebase. Use with the compact software-engineer agent for design, implementation, diagnosis, review, and delivery; load only the relevant stack and task guidance.
+description: Stack-aware engineering workflow for native Android (Kotlin/Jetpack Compose), native iOS (Swift/SwiftUI), Go, Rust, Dart, Flutter, Dart Frog, Astro, Next.js, and Firebase. Use with the compact software-engineer agent for design, implementation, diagnosis, review, and delivery; load only the relevant stack and task guidance.
 ---
 
 # Software Engineer Workflow
@@ -22,6 +22,8 @@ Honor an explicit stack choice for new work. For existing code, inspect the affe
 | `go.mod`, `go.work`, Go sources | [Go packages/errors](references/go.md); add HTTP, persistence, or concurrency guidance only when affected |
 | `Cargo.toml`, Rust crate/workspace sources | [Rust ownership/modules](references/rust.md); add HTTP or async guidance only when affected |
 | Plain Dart package | [Dart language/packages](references/dart.md) |
+| Android Gradle plugin, Android manifest, Kotlin/Java Android sources, Compose or Views | [Native Android contracts](references/android.md) |
+| iOS Xcode app target, Swift/Objective-C iOS sources, SwiftUI or UIKit | [Native iOS contracts](references/ios.md) |
 | Flutter SDK dependency or Flutter application | [Flutter application contracts](references/flutter.md), plus relevant shared Dart contracts |
 | Dart Frog dependency/routes | [Dart Frog HTTP contracts](references/dartfrog.md), plus relevant shared Dart contracts |
 | New web project without an agreed framework | [Web framework selection](references/web-stack-selection.md) |
@@ -34,6 +36,8 @@ Honor an explicit stack choice for new work. For existing code, inspect the affe
 | Environment rollout, workflow dispatch, health verification, or recovery | [Deployment execution](references/deployment.md) |
 
 Route per component in a monorepo; load additional profiles only when the task crosses their boundary. Flutter UI consuming Firebase SDKs starts with Flutter; a web client starts with its actual framework; changing Firebase resources adds the affected Firebase responsibility. A Go or Rust pipeline combines its affected runtime contracts with CI guidance; add container or deployment guidance only for those operations. A `package.json` alone does not establish a web stack: inspect framework dependencies and entrypoints rather than routing Firebase Functions or generic Node tools to Web. Trace contracts across affected components and verify both sides of changed integrations. For an unsupported stack, follow its repository tooling and authoritative documentation; do not force a supported framework onto it.
+
+Native mobile requests use the Android or iOS profile directly. Flutter's generated `android/` and `ios/` folders do not make a Dart-only UI task native work; add a native profile when changing that platform's code, build, permissions, or integration. A Gradle file alone may be a JVM tool, and `Package.swift` alone may be a non-iOS library: establish the affected target first. Native support does not imply migration to Flutter, Kotlin Multiplatform, Compose Multiplatform, or another shared UI stack.
 
 ## Start each new implementation on a new branch
 
@@ -60,7 +64,8 @@ Add operation references at their actual decision points:
 | Clarify business terms or update `CONTEXT.md` | [Domain language](references/domain-language.md) |
 | Record a lasting architecture trade-off | [ADR recording](references/architecture-decisions.md) |
 | Write/change tests or choose test doubles | [Behavioral testing](references/testing.md) |
-| Run language/framework checks | Affected stack only: [Go](references/go-validation.md), [Rust](references/rust-validation.md), [Dart/Flutter](references/dart-validation.md), [Web](references/web-validation.md), or [Firebase](references/firebase-validation.md) |
+| Run language/framework checks | Affected stack only: [Android](references/android-validation.md), [iOS](references/ios-validation.md), [Go](references/go-validation.md), [Rust](references/rust-validation.md), [Dart/Flutter](references/dart-validation.md), [Web](references/web-validation.md), or [Firebase](references/firebase-validation.md) |
+| Native mobile device interaction, runtime QA, or profiling | Affected platform's [Android](references/android-validation.md) or [iOS](references/ios-validation.md) validation guidance |
 | Flutter device interaction or runtime QA | [Flutter runtime QA](references/flutter-runtime-qa.md) |
 | Change/run adopted Dart generators | [Dart code generation](references/dart-code-generation.md) |
 | Identity, session trust, ownership, or tenant/role access | [Authorization contracts](references/security-auth.md) |
@@ -83,7 +88,7 @@ Preserve existing architecture unless change is requested or needed for the outc
 
 Use the selected profile for implementation, runtime-specific diagnosis, validation, and review. For behavior changes, select a caller-visible seam and write checks using the [behavioral testing guidelines](references/testing.md). For bugs, reproduce and narrow the actual symptom before fixing it, retain an appropriate regression check, and rerun the original scenario. If reproduction is blocked, gather evidence and state the limit instead of claiming a confirmed cause.
 
-After implementation, inspect the final diff and validate affected contracts. Use the stack's review guidance for a focused self-review of substantive changes; load only its relevant standards, and keep formal audit/reporting work proportional to the request. For a review-only task, pin the actual diff/revision and criteria before separate Standards and Spec passes; report missing criteria rather than inventing them. Do not modify the review target unless fixes are requested.
+After implementation, inspect the final diff and validate affected contracts. Use the [review procedure](references/review.md) and relevant stack standards for a focused self-review of substantive changes; keep formal reporting proportional to the request. For a review-only task, pin the actual diff/revision and criteria before separate Standards and Spec passes. Review correctness, regressions, reliability, and test gaps; trace affected callers and contracts; report actionable findings with file/line evidence, concrete failure scenarios, and verification limits. Use the procedure's defined review coverage score separately from its PR readiness score; report missing criteria rather than inventing them. Do not modify the review target unless fixes are requested.
 
 For authorized fixes, use the [delivery and correction loop](references/delivery.md) to resolve actionable findings and revalidate affected behavior. When the same failures recur, revisit the cause, seam, or design rather than applying another speculative patch. Keep completion tied to acceptance evidence and required review, with unresolved work explicit.
 

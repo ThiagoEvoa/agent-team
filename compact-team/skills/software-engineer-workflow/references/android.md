@@ -1,0 +1,30 @@
+# Native Android implementation
+
+Use for Android application or library implementation, platform integrations, and Android-specific diagnosis/review. Kotlin with Jetpack Compose is the default for new native UI unless the user chooses otherwise. Maintain Java, Views/XML, and established navigation/DI patterns where they already serve the task; migrate incrementally only when warranted by the request.
+
+## Establish a current, compatible toolchain
+
+Inspect `settings.gradle(.kts)`, module build files, the Gradle wrapper, version catalog, manifest, source sets, CI, SDK levels, and Java toolchain. Distinguish an Android target from plain JVM or multiplatform modules.
+
+For new projects, dependency choices, migrations, or version-dependent APIs, consult the live official [Android Studio/AGP release notes](https://developer.android.com/build/releases/gradle-plugin), [Kotlin releases](https://kotlinlang.org/docs/releases.html), and relevant [AndroidX release notes](https://developer.android.com/jetpack/androidx/versions). Record the checked date, stable versions selected, and compatibility constraints. Choose the newest stable compatible combination for new work; an existing project's pinned versions remain the baseline unless an upgrade is needed or requested. Do not equate the newest snippet, alpha, RC, or preview with a stable recommendation. If current documentation is unavailable, disclose that freshness is unverified and use the supported repository baseline rather than inventing current versions.
+
+- Use the checked-in Gradle wrapper and its compatible JDK/AGP/Kotlin combination. Prefer Kotlin DSL and a version catalog for a new project; retain an existing working convention. Pin dependencies rather than using dynamic `+` versions.
+- Check [built-in Kotlin guidance](https://developer.android.com/build/migrate-to-built-in-kotlin) for the chosen AGP. AGP 9+ enables built-in Kotlin by default; do not also apply the legacy Kotlin Android plugin without establishing the supported migration/opt-out path. Check symbol processor and Compose compiler compatibility separately.
+- Align Compose libraries through the stable [Compose BOM](https://developer.android.com/develop/ui/compose/bom); it does not version the compiler. With Kotlin 2+, use the matching Compose compiler Gradle plugin where required by the selected toolchain. Prefer KSP for newly introduced processors when supported; preserve working kapt integrations until a scoped migration is justified.
+- Keep `minSdk`, `compileSdk`, and `targetSdk` distinct. Select supported SDK levels, check target-behavior changes, and retain the product's device coverage. Do not raise the minimum SDK merely to avoid compatibility work.
+
+## Implement at the platform's seams
+
+Use the official [architecture recommendations](https://developer.android.com/topic/architecture/recommendations) proportionally: UI and data boundaries, explicit state, and unidirectional data flow. Add domain layers, modules, or DI frameworks when complexity justifies them; small features need no ceremonial use-case layer.
+
+- Keep Compose rendering driven by immutable screen state and callbacks. Own screen business state in the established ViewModel/controller, collect flows with lifecycle awareness, and keep navigation or network mutations out of recomposition. Preserve user-visible outcomes across recreation; use saveable state or `SavedStateHandle` for small restorable values and persistent storage for durable data.
+- Scope coroutines to their owner; make data APIs main-safe, preserve cancellation, and inject execution/test boundaries where useful. Do not swallow `CancellationException` or start app work in `GlobalScope`. Follow [Android coroutine guidance](https://developer.android.com/kotlin/coroutines/coroutines-best-practices).
+- For new Compose navigation, evaluate the stable [Navigation 3](https://developer.android.com/jetpack/androidx/releases/navigation3) APIs supported by the selected versions. Preserve adopted Navigation Compose/Fragment routing unless migration is requested. Verify back-stack ownership, restoration, predictive back, deep links, and authorization at destinations.
+- Use Material 3 where it fits the accepted design and [adaptive layouts](https://developer.android.com/develop/ui/compose/layouts/adaptive) based on available window space. Handle insets, edge-to-edge, keyboard, resizing, large text, TalkBack semantics, touch targets, and localization. Do not force a fixed phone layout onto tablets/foldables.
+- Keep network/storage implementations behind the affected data boundary. Use Room for suitable structured local data and DataStore for suitable preferences, or preserve the adopted alternatives. Plan schema migrations and offline/retry/conflict behavior before changing persisted contracts.
+- Use [WorkManager](https://developer.android.com/develop/background-work/background-tasks/persistent) for suitable deferrable persistent work; check current restrictions before foreground services, exact alarms, or background launches. Handle denied/revoked permissions, process recreation, and interrupted work when affected.
+- Minimize exported components and permissions; validate intents and deep links. Keep credentials out of source/resources/logs; use Android Keystore-backed protection where appropriate, with a defined backup/key-loss behavior. Add shared security or Firebase guidance only for affected contracts.
+
+For a Flutter plugin/platform channel, preserve the Dart/platform API, codec/nullability, threading, lifecycle, and error contract, and verify the native and Dart callers. For JNI/NDK work, additionally inspect the project's native ownership/build/ABI requirements rather than treating it as ordinary Kotlin UI.
+
+Load [Android validation](android-validation.md) when selecting/running checks or interacting with a device. In reviews, check lifecycle, cancellation, restoration, SDK availability, permissions, migrations, and the changed user path alongside the shared review procedure.

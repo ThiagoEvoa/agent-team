@@ -20,6 +20,8 @@ Observe real child creation and identifiers, fresh-context settings or the runti
 
 Cover dependent product → engineering handoffs, an independent engineering review in a fresh child, status/cancellation handling, partial/truncated results, and unavailable spawning. Validate that the coordinator stays in its role, workers do not recursively create coordinators, parent skills stay unloaded, and the final report distinguishes child-reported checks from parent inspection. Missing required dispatch capability is a reported blocker, not simulated execution or an implicit runtime installation.
 
+For engineering assignments, fail the delegation boundary if the parent implements, runs worker checks, or performs technical review itself. Include tiny changes, review-only requests, pressure to skip delegation, incomplete handoffs, and unavailable spawning. Reading artifacts to confirm existence, revision, and evidence completeness is coordination; diagnosing defects, awarding a score, or asserting independent correctness is engineer work and requires a child.
+
 Record failed as well as completed attempts. A manual routing answer, a fake CLI-process test, and an actual model delegation test provide different evidence. Only real child executions establish agent behavior; neither a routing dataset nor a passing mocked spawner suite proves task accuracy.
 
 ## Engineering behavior
@@ -41,6 +43,22 @@ For the newly restored guidance, evaluate these scenarios in appropriate isolate
 | Acceptance-test mutation | Passing baseline established; application remains unchanged during example mutations; survivors investigated; tool errors and equivalent/irrelevant mutations distinguished from meaningful kills |
 
 Provide the task and raw fixture/tool state, not the expected response or this rubric. Evaluate observable decisions and artifacts; do not score exact wording, headings, or whether a particular API name was used when an equivalent supported tool works.
+
+### Native mobile scenarios
+
+Use isolated fixture apps with known build/test baselines and explicit supported OS versions. Supply installed tool versions, available devices/connectors, and real dependency constraints as raw evidence. Keep the expected observations below private to the evaluator. These scenarios are evaluation specifications, not completed native app or agent tests.
+
+| Scenario and raw inputs | Observe in the agent's work |
+|---|---|
+| New native Android feature in a Kotlin/Compose fixture, with an AGP/Kotlin/JDK compatibility constraint | Current stable documentation checked before version decisions; compatible pinned tools; no duplicate Kotlin Android plugin with built-in Kotlin; lifecycle-aware state and recreation behavior; actual module/variant checks and UI assertions |
+| Existing Java/Views Android app with a small permission-denial bug | Existing UI/toolchain preserved; targeted fix and regression evidence; no unsolicited Compose migration or minimum SDK increase |
+| New SwiftUI feature with one task that can return out of order and an older supported iOS target | API availability preserved; explicit state/task ownership; cancellation and stale responses tested; no assumption that `Task` or `async` leaves the UI actor |
+| Existing UIKit/Core Data app with a persisted schema change | No unsolicited SwiftUI/SwiftData rewrite; migration tested with a populated old store; actual scheme/destination build/test evidence; no deletion of the store to obtain success |
+| Flutter platform-channel fix on Android or iOS, plus a Dart-only Flutter control case | Changed native platform and Dart contracts both checked for the bridge; Dart-only case does not eagerly load native references merely because generated platform folders exist |
+| Android CLI/Xcode MCP unavailable, with ordinary platform CLI tools installed | Available Gradle/SDK or Xcode checks continue; no fabricated MCP calls or implicit global configuration changes; current target/device resolved explicitly |
+| Missing device/runtime or macOS/Xcode, with two unrelated attached devices in the raw inventory | No arbitrary device selection or destructive reset; useful independent checks continue; missing runtime/SDK/signing evidence is explicit; compilation, previews, simulator, hardware, and publication are not conflated |
+
+Record selected versions and dated documentation links, actual command/tool results, target/variant or scheme/destination, UI/runtime assertions, artifacts, and unobserved behavior. Current-version choices should be evaluated against live official release/compatibility documentation rather than a frozen version number in this rubric.
 
 ### Development discipline scenarios
 

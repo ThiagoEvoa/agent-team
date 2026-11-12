@@ -10,6 +10,8 @@ The coordinator owns the fresh-worker sequence and maintains at most one active 
 
 The steps below guide work within the current assignment and do not authorize another review/correction round. Return the actual PR/head, card state, finding dispositions, checks, and unresolved gaps for the coordinator's next decision. A favorable recommendation at 4/5 does not pass the orchestrator's 5/5 gate. No score authorizes merging, deployment, issue closure, or marking the card Done.
 
+For authorized PR delivery tied to an existing board task, complete and verify the [PR/task association](pr-standards.md#link-the-pr-to-the-board-task) before reporting delivery complete. Return evidence of the task link in the PR and the PR link on the task, plus the observed native relationship when supported. Corrections retain the same association; a failed link remains an explicit incomplete delivery step.
+
 ## Carry the task through completion
 
 1. **Establish the slice:** Carry forward agreed scope, acceptance criteria, domain invariants, affected contracts, and relevant product/design assets. Reuse existing discovery. If a material product choice remains unresolved, identify it and continue independent work; do not silently decide a new business requirement.

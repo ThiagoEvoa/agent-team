@@ -8,6 +8,16 @@ When no title convention is defined, use `type(scope): description`, with scope 
 
 Lead with the problem and resulting behavior for a reviewer who has not seen the conversation. Link supplied issues or specifications; use a closing keyword only when the PR resolves that issue and closure is intended. Explain consequential design choices, compatibility effects, and dependencies when they help assess the change. Keep unrelated work out of the diff.
 
+## Link the PR to the board task
+
+For a PR associated with an existing board task, the software-engineer owns linking the two as part of authorized delivery:
+
+1. Resolve the exact task and board from the request and project context, and read the task before mutation. Do not create a replacement task or guess the destination. Report missing access or an ambiguous task while continuing independent work.
+2. Include the task's canonical URL in the PR description. Once the PR exists, record its actual URL on that same task using the board's existing PR field or link mechanism; otherwise add it to the task description while preserving unrelated content. Use a supported native PR/task relationship when available and authorized. A description link alone does not prove that a native relationship exists. Do not introduce automatic-closing keywords or issue closure without explicit intent.
+3. Read back the PR and task to verify both links and any native relationship actually established. During corrections, preserve or repair the association to the same task and PR. Report the task URL/identifier, board identifier, PR URL, observed association, and any unsupported or failed linking step in the handoff.
+
+When the assigned workflow requires an In Review transition, make it after the PR exists and the task has its PR link. A PR URL returned only in chat, or a board status change without the link, leaves the linking requirement incomplete. This requirement uses the task's existing authorization; it does not authorize unrelated board edits, new cards, closure, or marking the task Done.
+
 ## Default description
 
 Keep small PRs brief. Use this structure when it helps review, omitting sections that do not apply and expanding only where the change warrants it:

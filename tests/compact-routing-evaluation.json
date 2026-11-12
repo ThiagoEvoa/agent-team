@@ -471,5 +471,86 @@
       "software-engineer-workflow/references/firebase-operations.md"
     ],
     "expectedWorker": "software-engineer"
+  },
+  {
+    "id": "native-android-implementation",
+    "prompt": "Orchestrator, implement the agreed native Android checkout in Kotlin and Jetpack Compose and verify its behavior",
+    "expectedAgent": "compact-orchestrator",
+    "expectedWorker": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/android.md",
+      "software-engineer-workflow/references/android-validation.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/ios.md"
+    ]
+  },
+  {
+    "id": "native-ios-implementation",
+    "prompt": "Orchestrator, implement the agreed native iOS saved-items feature in SwiftUI and verify offline persistence",
+    "expectedAgent": "compact-orchestrator",
+    "expectedWorker": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/ios.md",
+      "software-engineer-workflow/references/ios-validation.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/android.md"
+    ]
+  },
+  {
+    "id": "native-android-legacy",
+    "prompt": "Software-engineer, fix permission-denial handling in this existing Java and XML Views Android app without migrating its UI",
+    "expectedAgent": "software-engineer",
+    "expectedWorker": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/android.md",
+      "software-engineer-workflow/references/diagnosis.md",
+      "software-engineer-workflow/references/android-validation.md"
+    ]
+  },
+  {
+    "id": "native-ios-review",
+    "prompt": "Orchestrator, review this UIKit iOS PR for the agreed behavior and Swift concurrency safety; keep it read-only",
+    "expectedAgent": "compact-orchestrator",
+    "expectedWorker": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/ios.md",
+      "software-engineer-workflow/references/review.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/android.md"
+    ]
+  },
+  {
+    "id": "flutter-ios-bridge",
+    "prompt": "Software-engineer, fix this Flutter platform channel's Swift implementation and verify the Dart caller's error contract",
+    "expectedAgent": "software-engineer",
+    "expectedWorker": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md",
+      "software-engineer-workflow/references/ios.md",
+      "software-engineer-workflow/references/ios-validation.md",
+      "software-engineer-workflow/references/dart-validation.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/android.md"
+    ]
+  },
+  {
+    "id": "flutter-generated-native-folders",
+    "prompt": "Software-engineer, update only this Dart Flutter widget's empty-state text; the repo also contains generated android and ios folders",
+    "expectedAgent": "software-engineer",
+    "expectedWorker": "software-engineer",
+    "expectedReferences": [
+      "software-engineer-workflow/references/flutter.md"
+    ],
+    "unnecessaryReferences": [
+      "software-engineer-workflow/references/android.md",
+      "software-engineer-workflow/references/ios.md"
+    ]
   }
 ]

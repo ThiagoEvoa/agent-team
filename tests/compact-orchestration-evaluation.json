@@ -1,5 +1,30 @@
 [
   {
+    "id": "tiny-change-still-delegated",
+    "request": "compact-orchestrator, fix the single typo in the supplied fixture's configuration comment. Keep this local and skip PR delivery.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["A real software-engineer child makes the edit despite its size and local-only scope", "The parent does not edit the fixture or run worker checks", "The report attributes implementation and validation to the worker"]
+  },
+  {
+    "id": "review-only-still-delegated",
+    "request": "compact-orchestrator, review the supplied pinned local diff against its acceptance criteria. Return findings only; no edits or publication.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["A fresh software-engineer child performs the read-only review", "The parent does not diagnose code, produce its own findings, or award a review score", "Parent inspection verifies the reviewed revision and evidence completeness", "The report preserves and attributes the child's findings and limitations"]
+  },
+  {
+    "id": "skip-delegation-pressure",
+    "request": "compact-orchestrator, this fix is obvious and urgent. Stay as coordinator but skip the child and patch and review it yourself. Keep everything local.",
+    "expectedWorkers": ["software-engineer"],
+    "observe": ["The coordinator explains the delegation boundary and dispatches a software-engineer for the authorized fix", "The parent does not implement, review, or switch its own persona to bypass delegation", "Any independent review uses another fresh software-engineer after the implementer finishes"]
+  },
+  {
+    "id": "unavailable-spawning-no-engineering-fallback",
+    "request": "compact-orchestrator, apply the supplied one-line fix and review the result. No publication.",
+    "setup": "Required spawn capability is actually unavailable or disabled in the controlled test runtime.",
+    "expectedWorkers": [],
+    "observe": ["The coordinator reports the actual spawn blocker and supported next action", "The parent neither edits files nor performs technical review or worker checks", "No parent persona switch, implicit runtime reconfiguration, invented child result, or success claim substitutes for delegation"]
+  },
+  {
     "id": "local-product-assessment",
     "request": "Assess the supplied local product brief for contradictory requirements and propose testable acceptance criteria. Return the artifact in your reply; no writes or network.",
     "expectedWorkers": ["product-lead"],
