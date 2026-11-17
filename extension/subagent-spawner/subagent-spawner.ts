@@ -3,7 +3,8 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 
 type SpawnArgs = {
 	prompt: string;
@@ -15,6 +16,8 @@ type SpawnArgs = {
 	timeoutMs?: number;
 	maxOutputChars?: number;
 	progressIntervalMs?: number;
+	recoverHandoff?: boolean;
+	wrapUpMs?: number;
 };
 
 type ModelLike = {
@@ -63,6 +66,26 @@ function trimOutput(text: string, maxChars: number): { text: string; truncated: 
 		text: `${text.slice(0, maxChars)}\n\n[output truncated to ${maxChars} chars]`,
 		truncated: true,
 	};
+}
+
+function readRecoveryFile(filePath: string, maxChars: number) {
+	let fd: number | undefined;
+	try {
+		const flags = fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0) | (fs.constants.O_NONBLOCK ?? 0);
+		if (!fs.lstatSync(filePath).isFile()) return undefined;
+		fd = fs.openSync(filePath, flags);
+		const stat = fs.fstatSync(fd);
+		if (!stat.isFile() || !stat.size) return undefined;
+		const buffer = Buffer.alloc(Math.min(stat.size, maxChars * 4, 1024 * 1024));
+		const bytes = fs.readSync(fd, buffer, 0, buffer.length, 0);
+		const preview = trimOutput(buffer.toString("utf8", 0, bytes).trim(), maxChars);
+		if (!preview.text) return undefined;
+		return { ...preview, truncated: preview.truncated || stat.size > bytes };
+	} catch {
+		return undefined;
+	} finally {
+		if (fd !== undefined) fs.closeSync(fd);
+	}
 }
 
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
@@ -348,6 +371,11 @@ async function runSubagent(
 			? args.tools
 			: dispatchDefaults.tools;
 
+	const recoverHandoff = args.recoverHandoff === true;
+	const defaultWrapUpMs = Math.min(300_000, Math.floor(timeoutMs / 5));
+	const wrapUpMs = recoverHandoff
+		? Math.min(timeoutMs - 1, clampPositiveInt(args.wrapUpMs, defaultWrapUpMs))
+		: 0;
 	const cliArgs: string[] = ["-p", "--mode", "text"];
 	if (finalProvider) {
 		cliArgs.push("--provider", finalProvider);
@@ -368,23 +396,33 @@ async function runSubagent(
 		}
 	}
 
-	// The prompt is passed as an argument (no shell interpolation).
-	let appendedPromptPath: string | null = null;
-	let appendedPromptDir: string | null = null;
-	if (resolvedAgent && resolvedAgent.instructions.trim()) {
-		appendedPromptDir = fs.mkdtempSync(path.join(process.env.TMPDIR || "/tmp", "pi-subagent-spawner-"));
-		appendedPromptPath = path.join(appendedPromptDir, `agent-${resolvedAgent.name}.md`);
-		fs.writeFileSync(appendedPromptPath, `${resolvedAgent.instructions}\n\n## Delegated persona\nParent assigned ${resolvedAgent.name} for this task. Follow this persona; if selectAgent is available, select exactly ${resolvedAgent.name} to synchronize TUI before work. Do not infer another role from incidental task keywords.\n`, { encoding: "utf-8", mode: 0o600 });
-		cliArgs.push("--append-system-prompt", appendedPromptPath);
+	const scratchDir = fs.mkdtempSync(path.join(tmpdir(), "pi-subagent-spawner-"));
+	const appendedPromptPath = path.join(scratchDir, `agent-${resolvedAgent.name}.md`);
+	const checkpointPath = path.join(scratchDir, "checkpoint.md");
+	const handoffPath = path.join(scratchDir, "handoff.md");
+	const recoveryInstructions = recoverHandoff ? [
+		"\n## Assignment recovery",
+		`Initialize the checkpoint at ${checkpointPath} after loading required workflow instructions and before long-running work. Record the assignment, known state, and next action.`,
+		"Update the checkpoint after meaningful steps. Record pending external changes before attempting them and the observed outcome afterward.",
+		`Save the final report to ${handoffPath} before replying. Include completed work, exact revisions and checks when relevant, and any unfinished work or blockers. Keep the reply concise.`,
+		"Write both scratch files atomically when supported. Use these spawner-supplied paths for this assignment. Keep credentials and sensitive logs out of both files.",
+	].join("\n") : "";
+	fs.writeFileSync(appendedPromptPath, `${resolvedAgent.instructions}\n\n## Delegated persona\nParent assigned ${resolvedAgent.name} for this task. Follow this persona; if selectAgent is available, select exactly ${resolvedAgent.name} to synchronize TUI before work. Do not infer another role from incidental task keywords.\n${recoveryInstructions}`, { encoding: "utf-8", mode: 0o600 });
+	cliArgs.push("--append-system-prompt", appendedPromptPath);
+	if (wrapUpMs) {
+		cliArgs.push("--extension", fileURLToPath(new URL("./subagent-runtime/wrap-up.ts", import.meta.url)));
 	}
 
+	// The prompt is passed as an argument (no shell interpolation).
 	cliArgs.push(prompt);
 
 	const invocation = getPiInvocation(cliArgs);
+	const startedAt = Date.now();
 	const child = spawn(invocation.command, invocation.args, {
 		cwd,
 		stdio: ["ignore", "pipe", "pipe"],
 		shell: false,
+		env: wrapUpMs ? { ...process.env, PI_SUBAGENT_WRAP_UP_AT: String(startedAt + timeoutMs - wrapUpMs) } : undefined,
         detached: process.platform !== "win32",
 	});
 
@@ -393,7 +431,6 @@ async function runSubagent(
 	let timedOut = false;
 	let aborted = false;
 	let settled = false;
-	const startedAt = Date.now();
 	let stdoutChars = 0;
 	let stderrChars = 0;
 	let lastOutputAt: number | null = null;
@@ -411,7 +448,8 @@ async function runSubagent(
 			onUpdate(toTextResult(
 				`${resolvedAgent.name}: ${state} (process activity only; task progress unverified). Elapsed ${Math.floor(elapsedMs / 1000)}s; timeout remaining ${Math.ceil(remainingMs / 1000)}s; stdout ${stdoutChars} chars, stderr ${stderrChars} chars; ${activity}.`,
 				{ state, elapsedMs, remainingMs, timeoutMs, stdoutChars, stderrChars, lastOutputAt, timedOut, aborted, cwd,
-					agent: { name: resolvedAgent.name, sourcePath: resolvedAgent.sourcePath } },
+					agent: { name: resolvedAgent.name, sourcePath: resolvedAgent.sourcePath },
+					...(recoverHandoff ? { checkpointPath, handoffPath, wrapUpMs } : {}) },
 			));
 		} catch {
 			// A progress renderer must not interrupt process management or lose the handoff.
@@ -433,7 +471,7 @@ async function runSubagent(
     const timeout = setTimeout(() => {
         timedOut = true;
         killChild();
-    }, timeoutMs);
+    }, Math.max(0, startedAt + timeoutMs - Date.now()));
     const onAbort = () => {
         aborted = true;
         killChild();
@@ -473,19 +511,11 @@ async function runSubagent(
     if (stopRequested) sendSignal("SIGKILL"); // Reap remaining POSIX process-group members.
     if (escalation) clearTimeout(escalation);
 	signal?.removeEventListener("abort", onAbort);
-	if (appendedPromptPath) {
-		try {
-			fs.unlinkSync(appendedPromptPath);
-		} catch {
-			// Ignore cleanup races.
-		}
-	}
-	if (appendedPromptDir) {
-		try {
-			fs.rmdirSync(appendedPromptDir);
-		} catch {
-			// Ignore cleanup races.
-		}
+	try {
+		fs.rmSync(appendedPromptPath, { force: true });
+		fs.rmdirSync(scratchDir); // An assignment with saved evidence keeps its directory.
+	} catch {
+		// Cleanup is best-effort. Leave recovery files available to the coordinator.
 	}
 
 	const output = (stdout || stderr || "").trim();
@@ -494,6 +524,15 @@ async function runSubagent(
         trimmed.truncated = true;
         trimmed.text += `\n\n[output truncated to ${maxOutputChars} chars]`;
     }
+	const finalHandoff = recoverHandoff ? readRecoveryFile(handoffPath, maxOutputChars) : undefined;
+	const checkpoint = recoverHandoff && !finalHandoff ? readRecoveryFile(checkpointPath, maxOutputChars) : undefined;
+	const recovery = finalHandoff ?? checkpoint;
+	const recoveryKind = finalHandoff ? "handoff" : "checkpoint";
+	const recoveryPath = finalHandoff ? handoffPath : checkpointPath;
+	const useRecovery = !!recovery && (timedOut || aborted || exitCode !== 0 || trimmed.truncated || !stdout.trim());
+	const resultText = useRecovery && recovery
+		? `Recovered ${recoveryKind} at ${recoveryPath}.${recovery.truncated ? " Preview is capped. Read the file for the full report." : ""}\n\n${recovery.text}`
+		: trimmed.text || "(no output)";
 	const metadata = {
 		state: "exited",
 		elapsedMs: Date.now() - startedAt,
@@ -508,6 +547,12 @@ async function runSubagent(
 		cwd,
 		timeoutMs,
 		maxOutputChars,
+		...(recoverHandoff ? {
+			checkpointPath,
+			handoffPath,
+			wrapUpMs,
+			recovery: recovery ? { kind: recoveryKind, path: recoveryPath, truncated: recovery.truncated, used: useRecovery } : null,
+		} : {}),
 		model: finalModel ?? null,
 		modelSource: explicitModel
 			? "args"
@@ -529,29 +574,29 @@ async function runSubagent(
 
 	if (timedOut) {
 		return toTextResult(
-			`spawnSubagent timed out after ${timeoutMs}ms.\n\n${trimmed.text || "(no output)"}`,
+			`spawnSubagent timed out after ${timeoutMs}ms.\n\n${resultText}`,
 			metadata,
 		);
 	}
 
 	if (aborted) {
-		return toTextResult(`spawnSubagent was aborted.\n\n${trimmed.text || "(no output)"}`, metadata);
+		return toTextResult(`spawnSubagent was aborted.\n\n${resultText}`, metadata);
 	}
 
 	if (exitCode !== 0) {
 		if (/No API key found/i.test(trimmed.text)) {
 			return toTextResult(
-				`spawnSubagent failed: missing API key for the selected model/provider.\n\n${trimmed.text}`,
+				`spawnSubagent failed: missing API key for the selected model/provider.\n\n${resultText}`,
 				metadata,
 			);
 		}
 		return toTextResult(
-			`spawnSubagent failed (exit code ${exitCode ?? "unknown"}).\n\n${trimmed.text || "(no output)"}`,
+			`spawnSubagent failed (exit code ${exitCode ?? "unknown"}).\n\n${resultText}`,
 			metadata,
 		);
 	}
 
-	return toTextResult(trimmed.text || "(no output)", metadata);
+	return toTextResult(resultText, metadata);
 }
 
 export default function subagentSpawnerExtension(pi: ExtensionAPI) {
@@ -647,6 +692,14 @@ export default function subagentSpawnerExtension(pi: ExtensionAPI) {
 					type: "number",
 					description: "Process activity update interval in milliseconds (default 10000, clamped to 1000–60000). Does not extend the execution timeout or create a background job.",
 				},
+			},
+			recoverHandoff: {
+				type: "boolean",
+				description: "Enable for long assignments. Supplies private scratch paths for an initial checkpoint and final handoff, recovers saved evidence after exit if needed, and sends a wrap-up message before the hard timeout.",
+			},
+			wrapUpMs: {
+				type: "number",
+				description: "Optional lead time in milliseconds for the wrap-up message with recoverHandoff enabled. Defaults to 20% of timeoutMs, capped at five minutes. The hard timeout still applies.",
 			},
 		},
 		async execute(

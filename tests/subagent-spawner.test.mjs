@@ -3,7 +3,7 @@ import { test, after, beforeEach } from 'node:test';
 import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 const home = mkdtempSync(join(tmpdir(), 'subagent-test-'));
 const oldHome = process.env.HOME;
@@ -20,12 +20,50 @@ for (const agent of ['compact-orchestrator', 'product-lead', 'software-engineer'
 }
 const fake = join(home, 'fake-pi.mjs');
 writeFileSync(fake, `import {readFileSync,writeFileSync} from 'node:fs';
+import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 const args=process.argv.slice(2), prompt=args.at(-1);
 if(prompt==='hang') { writeFileSync('partial-work','implemented slice; checks pending'); process.on('SIGTERM',()=>{}); console.log('ready'); setInterval(()=>{},100); }
 else if(prompt==='large') console.log('x'.repeat(10000));
 else if(prompt==='silent-slow') setTimeout(()=>console.log('finished'),1500);
 else if(prompt==='output-slow') { console.log('x'.repeat(10000)); console.error('diagnostic'); setTimeout(()=>console.log('finished'),1500); }
 else if(prompt==='context-probe') console.log(JSON.stringify({pid:process.pid,args}));
+else if(prompt.startsWith('recovery-')) {
+  const promptPath = args[args.indexOf('--append-system-prompt') + 1];
+  const instructions = readFileSync(promptPath, 'utf8');
+  const checkpoint = join(dirname(promptPath), 'checkpoint.md');
+  const handoff = join(dirname(promptPath), 'handoff.md');
+  if (!instructions.includes(checkpoint) || !instructions.includes(handoff)) throw new Error('Missing scratch instructions');
+  if (prompt !== 'recovery-no-evidence') writeFileSync(checkpoint, 'slice implemented; checks pending');
+  if (prompt === 'recovery-timeout') setInterval(() => {}, 100);
+  if (prompt === 'recovery-truncated' || prompt === 'recovery-empty') {
+    writeFileSync(handoff, 'final report with verification evidence');
+    if (prompt === 'recovery-truncated') console.log('x'.repeat(10000));
+  }
+  if (prompt === 'recovery-wrap-up' || prompt === 'recovery-fast') {
+    const { default: initWrapUp } = await import(pathToFileURL(args[args.indexOf('--extension') + 1]).href);
+    const handlers = new Map();
+    const keepAlive = setInterval(() => {}, 100);
+    initWrapUp({
+      on: (name, handler) => handlers.set(name, handler),
+      sendUserMessage: (message, options) => {
+        if (prompt === 'recovery-fast') throw new Error('Wrap-up after completion');
+        if (options.deliverAs !== 'steer' || !message.includes('final handoff')) throw new Error('Invalid wrap-up');
+        writeFileSync(handoff, 'wrapped up with checks pending');
+        console.log('handoff saved');
+        handlers.get('agent_end')();
+        clearInterval(keepAlive);
+      },
+    });
+    handlers.get('agent_start')({}, { isIdle: () => false });
+    if (prompt === 'recovery-fast') {
+      handlers.get('agent_end')();
+      writeFileSync(handoff, 'fast report');
+      console.log('finished early');
+      setTimeout(() => clearInterval(keepAlive), 450);
+    }
+  }
+}
 else console.log(readFileSync(args[args.indexOf('--append-system-prompt')+1],'utf8'));
 `);
 const { default: init } = await import('../extension/subagent-spawner/subagent-spawner.ts');
@@ -243,6 +281,62 @@ test('fast completion returns before the next activity interval', {timeout:5000}
   assert.equal(result.details.ok,true);
   assert.equal(result.details.timedOut,false);
   assert.ok(result.details.elapsedMs < 4000);
+});
+
+async function runRecovery(t, prompt, options = {}) {
+  const h = await harness();
+  const result = await h.run({ prompt, agent: 'software-engineer', recoverHandoff: true, ...options });
+  t.after(() => rmSync(dirname(result.details.handoffPath), { recursive: true, force: true }));
+  return result;
+}
+
+test('wrap-up steers the running worker before the hard timeout', {timeout:5000}, async t => {
+  const result = await runRecovery(t, 'recovery-wrap-up', { timeoutMs: 2400, wrapUpMs: 1600 });
+  assert.equal(result.details.ok, true);
+  assert.equal(result.details.timedOut, false);
+  assert.equal(result.details.recovery.kind, 'handoff');
+  assert.equal(result.details.recovery.used, false);
+  assert.equal(result.content[0].text, 'handoff saved');
+  assert.equal(readFileSync(result.details.handoffPath, 'utf8'), 'wrapped up with checks pending');
+});
+
+test('early completion cancels the scheduled wrap-up', {timeout:5000}, async t => {
+  const result = await runRecovery(t, 'recovery-fast', { timeoutMs: 1800, wrapUpMs: 1500 });
+  assert.equal(result.details.ok, true);
+  assert.equal(result.content[0].text, 'finished early');
+});
+
+test('hard timeout returns the saved checkpoint as partial evidence', {timeout:5000}, async t => {
+  const result = await runRecovery(t, 'recovery-timeout', { timeoutMs: 1200 });
+  assert.equal(result.details.timedOut, true);
+  assert.equal(result.details.ok, false);
+  assert.equal(result.details.stdoutChars, 0);
+  assert.deepEqual(result.details.recovery, {
+    kind: 'checkpoint', path: result.details.checkpointPath, truncated: false, used: true,
+  });
+  assert.match(result.content[0].text, /timed out.*\n\nRecovered checkpoint/);
+  assert.match(result.content[0].text, /slice implemented; checks pending/);
+});
+
+for (const exit of ['truncated', 'empty']) {
+  test(`saved final handoff is recovered when stdout is ${exit}`, async t => {
+    const result = await runRecovery(t, `recovery-${exit}`, { maxOutputChars: 100 });
+    assert.equal(result.details.ok, true);
+    assert.equal(result.details.truncated, exit === 'truncated');
+    assert.deepEqual(result.details.recovery, {
+      kind: 'handoff', path: result.details.handoffPath, truncated: false, used: true,
+    });
+    assert.match(result.content[0].text, /final report with verification evidence/);
+    assert.doesNotMatch(result.content[0].text, /checks pending/);
+  });
+}
+
+test('empty exit without a saved artifact reports no recovery', async t => {
+  const result = await runRecovery(t, 'recovery-no-evidence');
+  assert.equal(result.details.exitCode, 0);
+  assert.equal(result.details.recovery, null);
+  assert.equal(result.content[0].text, '(no output)');
+  assert.equal(existsSync(dirname(result.details.handoffPath)), false);
 });
 
 test('oversized execution budget cannot overflow into an immediate timeout', {timeout:5000}, async () => {

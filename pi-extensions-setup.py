@@ -24,7 +24,10 @@ from pathlib import Path
 EXTENSION_FILES = {
     "custom-tui": [("extension/custom-tui/custom-tui.ts", "custom-tui.ts")],
     "agent-switcher": [("extension/agent-switcher/agent-switcher.ts", "agent-switcher.ts")],
-    "subagent-spawner": [("extension/subagent-spawner/subagent-spawner.ts", "subagent-spawner.ts")],
+    "subagent-spawner": [
+        ("extension/subagent-spawner/subagent-runtime/wrap-up.ts", "subagent-runtime/wrap-up.ts"),
+        ("extension/subagent-spawner/subagent-spawner.ts", "subagent-spawner.ts"),
+    ],
     "notes": [("extension/notes-extension/notes-extension.ts", "notes-extension.ts")],
     "pdf-img-ocr": [("extension/pdf-img-ocr/pdf-img-ocr.ts", "pdf-img-ocr.ts")],
     # Keep the TTS module beside its entry point for relative imports in every install mode.
