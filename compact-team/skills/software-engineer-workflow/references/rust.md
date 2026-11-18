@@ -2,7 +2,9 @@
 
 Use for Rust ownership, crate/module boundaries, errors, unsafe/FFI invariants, and public APIs.
 
-Inspect Cargo manifests, workspace members/default members, feature flags, edition/MSRV, toolchain pin, CI, and target configuration. Preserve the existing framework, error conventions, async runtime, dependency policy, and public contracts. Verify uncertain behavior against documentation for the actual version. Locate official local Rust/Cargo docs with `rustup doc --path` or `rustup doc --path --cargo`; use official online docs when necessary.
+Inspect Cargo manifests, workspace members/default members, feature flags, edition/MSRV, toolchain pin, CI, and target configuration. Preserve the existing framework, error conventions, async runtime, dependency policy, and public contracts.
+
+Verify uncertain behavior against documentation for the actual version. Check whether `rust-docs-mcp` is available and use it first for Rust documentation lookups. If it is unavailable or cannot provide the relevant versioned documentation, locate official local Rust/Cargo docs with `rustup doc --path` or `rustup doc --path --cargo`; use official online docs when necessary.
 
 For a new multi-feature HTTP API, prefer a modular monolith organized by capabilities. A small feature may remain one module. Features own routes, business operations, models, and persistence; the application composes routers and dependencies at startup. Keep transport parsing/error mapping outside reusable business behavior. Expose only useful feature operations/router builders and keep internals private. Existing projects and tiny APIs retain their architecture unless migration is in scope.
 
